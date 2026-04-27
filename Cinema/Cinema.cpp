@@ -4,6 +4,7 @@
 #include <iostream>
 #include "Film.h"
 #include "Sala.h"
+#include "Client.h"
 using namespace std;
 
 int main()
@@ -19,7 +20,10 @@ int main()
     cout << "Afisare dupa atribuire: " << endl; 
     f2.Afisare();
 
-    
+    Persoana* p = new Client("Ion");
+    p->Afisare();
+
+    delete p;
 
 
 }

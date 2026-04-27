@@ -131,6 +131,7 @@
     <ClCompile Include="Cinematograf.cpp" />
     <ClCompile Include="Client.cpp" />
     <ClCompile Include="Film.cpp" />
+    <ClCompile Include="Persoana.cpp" />
     <ClCompile Include="Rezervare.cpp" />
     <ClCompile Include="Sala.cpp" />
   </ItemGroup>
@@ -138,6 +139,7 @@
     <ClInclude Include="Client.h" />
     <ClInclude Include="Film.h" />
     <ClInclude Include="Cinematograf.h" />
+    <ClInclude Include="Persoana.h" />
     <ClInclude Include="Rezervare.h" />
     <ClInclude Include="Sala.h" />
   </ItemGroup>

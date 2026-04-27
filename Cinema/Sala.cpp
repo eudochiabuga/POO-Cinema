@@ -15,7 +15,7 @@ Sala::Sala(string sala, int capacitate, int numarRanduri, int numarColoane)
 
 Sala::~Sala()
 {
-
+	ElibereazaMatrice();
 }
 
 void Sala::Afisare()
@@ -35,7 +35,7 @@ Sala::Sala(const Sala& sala)
 	AlocaMatrice();
 	for (int i = 0; i < NumarRanduri; i++)
 		for (int j = 0; j < NumarColoane; j++)
-			Matrice[i][j] = 0;
+			Matrice[i][j] = sala.Matrice[i][j];
 
 
 }

@@ -25,7 +25,7 @@ public:
 	}
 	int GetDurata() const
 	{
-		Durata;
+		return Durata;
 	}
 	int GetVarstaMinima() const
 	{
