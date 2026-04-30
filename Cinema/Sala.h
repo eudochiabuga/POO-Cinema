@@ -6,6 +6,7 @@ using namespace std;
 
 class Sala
 {
+protected:
 	string NumarSala;
 	int Capacitate;
 	int NumarRanduri;

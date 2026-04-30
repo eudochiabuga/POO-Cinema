@@ -134,6 +134,7 @@
     <ClCompile Include="Persoana.cpp" />
     <ClCompile Include="Rezervare.cpp" />
     <ClCompile Include="Sala.cpp" />
+    <ClCompile Include="SalaVIP.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Client.h" />
@@ -142,6 +143,7 @@
     <ClInclude Include="Persoana.h" />
     <ClInclude Include="Rezervare.h" />
     <ClInclude Include="Sala.h" />
+    <ClInclude Include="SalaVIP.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

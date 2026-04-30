@@ -36,6 +36,9 @@
     <ClCompile Include="Persoana.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="SalaVIP.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Film.h">
@@ -54,6 +57,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Persoana.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SalaVIP.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

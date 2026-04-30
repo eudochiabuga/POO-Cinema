@@ -7,10 +7,12 @@ class Persoana
 {
 protected:
 	string nume;
+	int varsta;
 
 public:
-	Persoana(string nume) : nume(nume){}
-    virtual void Afisare() = 0;
+	Persoana(string n, int v) : nume(n), varsta(v){}
+	virtual float GetDiscount() = 0;
+	int GetVasrta() { return varsta; }
 	virtual ~Persoana();
 
 };
