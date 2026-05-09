@@ -18,7 +18,7 @@ Sala::~Sala()
 	ElibereazaMatrice();
 }
 
-void Sala::Afisare()
+void Sala::Afisare() const
 {
 	cout << "Numar sala: " << NumarSala << endl;
 	cout << "Capacitate: " << Capacitate << endl;
