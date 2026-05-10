@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Cinema.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Film.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -30,13 +27,16 @@
     <ClCompile Include="Cinematograf.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Client.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Persoana.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SalaVIP.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TipPersoana.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -53,13 +53,13 @@
     <ClInclude Include="Cinematograf.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Client.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Persoana.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SalaVIP.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TipPersoana.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

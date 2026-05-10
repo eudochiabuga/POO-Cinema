@@ -4,7 +4,7 @@
 #include <iostream>
 #include "Film.h"
 #include "Sala.h"
-#include "Client.h"
+#include "TipPersoana"
 using namespace std;
 
 int main()

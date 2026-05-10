@@ -1,46 +1,60 @@
 #include "SalaVIP.h"
+#include <iomanip>
 
 SalaVIP::SalaVIP(string sala, int capacitate, int randuri, int coloane,
-	double suplimentPret, string tipScaun)
-	:Sala(sala, capacitate, randuri, coloane)
-{
-	SuplimentPret = suplimentPret;
-	TipScaun = tipScaun;
+    double suplimentPret, string tipScaun)
+    : Sala(sala, capacitate, randuri, coloane),
+    SuplimentPret(suplimentPret), TipScaun(tipScaun) {
 }
 
-SalaVIP::~SalaVIP()
-{
-	cout << "Sala VIP distrusă: " << GetNumarSala() << endl;
+SalaVIP::~SalaVIP() {}
+
+void SalaVIP::Afisare() const {
+    cout << "=== Sala VIP ===" << endl;
+    Sala::Afisare();
+    cout << "Tip scaun:  " << TipScaun << endl;
+    cout << "Supliment:  +" << SuplimentPret * 100 << "%" << endl;
+    AfisareMeniu();
 }
 
-void SalaVIP::Afisare() const
-{
-	cout << "===Sala VIP " << GetNumarSala() << "==="<<endl;
-	cout << "Scaune:" << TipScaun << "| Supliment pret: +" << SuplimentPret * 100 << "%" << endl;
-	if (!MeniuDisponibil.empty())
-	{
-		cout << "Meniu disponibil: ";
-		for (auto& produs : MeniuDisponibil)
-			cout << produs << ", ";
-		cout << endl;
-	}
-	cout << endl;
-	Sala::Afisare();
+void SalaVIP::AdaugaProdusMeniu(string produs) {
+    MeniuDisponibil.push_back(produs);
+}
 
+void SalaVIP::AfisareMeniu() const {
+    cout << "Meniu sala " << GetNumarSala() << ":" << endl;
+    for (auto& p : MeniuDisponibil)
+        cout << "  - " << p << endl;
 }
-void SalaVIP::AdaugaProdusMeniu(string produs)
-{
-	MeniuDisponibil.push_back(produs);
+
+
+
+void SalaVIP::AfisareHarta() const {
+    cout << "\n  Harta salii VIP " << GetNumarSala() << ":\n";
+    cout << "    ";
+    for (int j = 0; j < NumarColoane; j++)
+        cout << setw(3) << j + 1;
+    cout << "\n";
+    for (int i = 0; i < NumarRanduri; i++) {
+        cout << setw(3) << i + 1 << " ";
+        for (int j = 0; j < NumarColoane; j++) {
+            if (Matrice[i][j] == 1)
+                cout << " [X]";
+            else
+                cout << " [R]";
+        }
+        cout << "\n";
+    }
+    cout << "  Legenda: [R]=recliner liber  [X]=ocupat\n\n";
 }
-void SalaVIP::AfisareMeniu() const
-{
-	cout << "Meniu pentru sala " << GetNumarSala() << ":" << endl;
-	for (auto& produs : MeniuDisponibil)
-		cout << "- " << produs << endl;
-}
-ostream& operator<<(ostream & out, const SalaVIP & s)
-{
-	out << "Sala VIP " << s.GetNumarSala() << " (" << s.GetRanduri() << "x" << s.GetColoane()
-		<< "), supliment pret " << s.SuplimentPret * 100 << "%, scaune: " << s.TipScaun;
-	return out;
+
+double SalaVIP::GetSuplimentPret() const { return SuplimentPret; }
+bool   SalaVIP::EsteVIP()          const { return true; }
+
+ostream& operator<<(ostream& out, const SalaVIP& s) {
+    out << "Sala VIP " << s.GetNumarSala()
+        << " (" << s.GetRanduri() << "x" << s.GetColoane()
+        << "), supliment +" << s.SuplimentPret * 100
+        << "%, scaune: " << s.TipScaun;
+    return out;
 }

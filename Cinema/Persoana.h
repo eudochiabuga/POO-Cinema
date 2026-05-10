@@ -10,9 +10,11 @@ protected:
 	int varsta;
 
 public:
-	Persoana(string n, int v) : nume(n), varsta(v){}
-	virtual float GetDiscount() = 0;
-	int GetVasrta() { return varsta; }
+	Persoana(string n, int v);
+	virtual float GetDiscount() const = 0;
+	virtual string GetTip() const = 0;
+	int GetVarsta() const;
+	string GetNume() const;
 	virtual ~Persoana();
 
 };

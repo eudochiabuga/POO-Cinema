@@ -12,26 +12,15 @@ class Film
 	string Limba;
 public:
 	Film(string titlu, string categorie, int durata, int varstaMinima, string limba );
-	Film(const Film& film);
-	Film& operator=(const Film& film);
-	void Afisare();
-	string GetTitlu() const
-	{
-		return Titlu;
-	}
-	string GetCategorie() const
-	{
-		return Categorie;
-	}
-	int GetDurata() const
-	{
-		return Durata;
-	}
-	int GetVarstaMinima() const
-	{
-		return VarstaMinima;
-	}
+	Film(const Film& f);
+	Film& operator=(const Film& f);
+	string GetTitlu() const;
+	string GetCategorie() const;
+	int GetDurata() const;
+	int GetVarstaMinima() const;
+	string GetLimba() const;
 	void SetLimba(string limba);
-	friend ostream& operator<<(ostream& out, const Film& film);
-};
+	void Afisare() const;
 
+	friend ostream& operator<<(ostream& out, const Film& f);
+};
