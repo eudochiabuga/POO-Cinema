@@ -36,28 +36,7 @@
     <ClCompile Include="TipPersoana.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Angajat.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="AppContext.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="MainApp.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Persistenta.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Raport.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SistemAutentificare.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Spectacol.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="TipAngajat.cpp">
+    <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -81,54 +60,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="TipPersoana.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Angajat.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="AppContext.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DialogAngajat.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DialogFilm.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DialogRezervare.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DialogSala.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DialogSpectacol.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Exceptii.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="LoginForm.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MainForm.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Persistenta.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Raport.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Repository.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SistemAutentificare.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Spectacol.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="TipAngajat.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

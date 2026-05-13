@@ -1,18 +1,14 @@
 #include "Sala.h"
 #include <iomanip>
-#include <sstream>
-
-int Sala::GenerareID = 1;
 
 Sala::Sala(string sala, int capacitate, int numarRanduri, int numarColoane)
     : NumarSala(sala), Capacitate(capacitate),
     NumarRanduri(numarRanduri), NumarColoane(numarColoane) {
-    id = GenerareID++;
     AlocaMatrice();
 }
 
 Sala::Sala(const Sala& s)
-    : id(s.id), NumarSala(s.NumarSala), Capacitate(s.Capacitate),
+    : NumarSala(s.NumarSala), Capacitate(s.Capacitate),
     NumarRanduri(s.NumarRanduri), NumarColoane(s.NumarColoane) {
     AlocaMatrice();
     for (int i = 0; i < NumarRanduri; i++)
@@ -23,7 +19,6 @@ Sala::Sala(const Sala& s)
 Sala& Sala::operator=(const Sala& s) {
     if (this != &s) {
         ElibereazaMatrice();
-        id = s.id;
         NumarSala = s.NumarSala;
         Capacitate = s.Capacitate;
         NumarRanduri = s.NumarRanduri;
@@ -77,17 +72,11 @@ bool Sala::EsteLocVIP(int rand) const {
     return rand >= NumarRanduri - 2;
 }
 
-void Sala::ReseteazaLocuri() {
-    for (int i = 0; i < NumarRanduri; i++)
-        for (int j = 0; j < NumarColoane; j++)
-            Matrice[i][j] = 0;
-}
-
 void Sala::Afisare() const {
-    cout << "Sala #" << id << "  " << NumarSala << endl;
-    cout << "  Randuri:    " << NumarRanduri << endl;
-    cout << "  Coloane:    " << NumarColoane << endl;
-    cout << "  Capacitate: " << Capacitate << " locuri" << endl;
+    cout << "Sala:       " << NumarSala << endl;
+    cout << "Randuri:    " << NumarRanduri << endl;
+    cout << "Coloane:    " << NumarColoane << endl;
+    cout << "Capacitate: " << Capacitate << " locuri" << endl;
 }
 
 void Sala::AfisareHarta() const {
@@ -112,13 +101,6 @@ void Sala::AfisareHarta() const {
     cout << "  Legenda: [ ]=liber  [X]=ocupat  [V]=VIP liber\n\n";
 }
 
-string Sala::Descriere() const {
-    ostringstream os;
-    os << "Sala " << NumarSala << " - " << NumarRanduri << "x" << NumarColoane
-        << " (" << Capacitate << " locuri)";
-    return os.str();
-}
-
 string Sala::GetNumarSala()       const { return NumarSala; }
 int    Sala::GetRanduri()         const { return NumarRanduri; }
 int    Sala::GetColoane()         const { return NumarColoane; }
@@ -131,3 +113,4 @@ ostream& operator<<(ostream& out, const Sala& s) {
         << ", " << s.Capacitate << " locuri)";
     return out;
 }
+

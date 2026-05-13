@@ -1,0 +1,1 @@
+# id|spectacolID|tipClient|numeClient|varsta|email|telefon|rand|coloana|dataEmiterii
