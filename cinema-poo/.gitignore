@@ -1,0 +1,44 @@
+# ============================================================
+#  .gitignore - Sistem de Rezervari Cinema
+#  Exclude din git fisierele generate de build / IDE-uri.
+# ============================================================
+
+# ---- Binare compilate ----
+cinema
+cinema.exe
+test_cinema
+test_cinema.exe
+*.o
+*.obj
+*.exe
+*.out
+*.a
+
+# ---- Folder build CMake ----
+build/
+cmake-build-*/
+
+# ---- Visual Studio ----
+.vs/
+x64/
+Debug/
+Release/
+*.user
+*.suo
+*.aps
+*.opensdf
+*.sdf
+
+# ---- Date generate la rulare ----
+date/
+*.tmp
+
+# ---- Editoare ----
+.vscode/
+.idea/
+*.swp
+*~
+
+# ---- OS ----
+.DS_Store
+Thumbs.db
