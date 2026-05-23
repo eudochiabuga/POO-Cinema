@@ -21,6 +21,9 @@ public:
 
     void SetEmailClient(const std::string& e) { emailClient = e; }
 
+    // Polimorfism: RezervareOnline returneaza true pentru EsteOnline()
+    bool EsteOnline() const override { return true; }
+
     // Suprascrie afisarea pentru a include detaliile online
     void Afisare() const;
     std::string ToString() const;

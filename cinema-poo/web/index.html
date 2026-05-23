@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CinePlex - Cinema pentru toata familia</title>
+<script src="data.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  /* PALETA: dark sofisticat pentru adulti, accente candy pentru copii */
+  :root {
+    --bg-deep: #1a0d2e;          /* mov nopti */
+    --bg-soft: #2a1854;          /* mov mediu */
+    --bg-card: #ffffff;          /* card alb candy */
+    --bg-card-dark: #2d1b4e;     /* card mov pentru sectiuni serioase */
+
+    --candy-pink: #ff5e9c;       /* roz bomboana */
+    --candy-yellow: #ffd93d;     /* galben smiley */
+    --candy-mint: #4ecdc4;       /* mint freshness */
+    --candy-purple: #a78bfa;     /* violet ametist */
+    --candy-orange: #ff9a3c;     /* portocaliu cald */
+
+    --text-light: #ffffff;
+    --text-dark: #2a1854;
+    --text-dim: #9b8eb8;
+
+    --vip-gold: #ffb800;
+    --3d-cyan: #00d9ff;
+    --shadow: 0 10px 40px rgba(255, 94, 156, 0.2);
+    --shadow-hover: 0 20px 60px rgba(255, 94, 156, 0.35);
+  }
+
+  body {
+    background:
+      radial-gradient(circle at 15% 50%, rgba(255, 94, 156, 0.15) 0%, transparent 40%),
+      radial-gradient(circle at 85% 30%, rgba(78, 205, 196, 0.15) 0%, transparent 40%),
+      radial-gradient(circle at 50% 80%, rgba(255, 217, 61, 0.1) 0%, transparent 40%),
+      linear-gradient(180deg, var(--bg-deep) 0%, var(--bg-soft) 100%);
+    background-attachment: fixed;
+    color: var(--text-light);
+    font-family: 'Inter', -apple-system, sans-serif;
+    min-height: 100vh;
+    line-height: 1.5;
+    overflow-x: hidden;
+  }
+
+  /* Floating shapes background */
+  body::before {
+    content: '';
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background-image:
+      radial-gradient(circle at 90% 10%, rgba(255, 217, 61, 0.08) 0%, transparent 8%),
+      radial-gradient(circle at 10% 30%, rgba(78, 205, 196, 0.08) 0%, transparent 8%),
+      radial-gradient(circle at 80% 70%, rgba(255, 94, 156, 0.08) 0%, transparent 8%);
+  }
+
+  /* === HEADER === */
+  header {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(26, 13, 46, 0.85);
+    backdrop-filter: blur(24px);
+    border-bottom: 2px solid rgba(255, 94, 156, 0.3);
+    padding: 1rem 2rem;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .logo {
+    display: flex; align-items: center; gap: 0.75rem;
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1.75rem; font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .logo-icon {
+    width: 44px; height: 44px;
+    background: linear-gradient(135deg, var(--candy-pink) 0%, var(--candy-yellow) 100%);
+    border-radius: 50% 60% 50% 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem;
+    box-shadow: 0 4px 12px rgba(255, 94, 156, 0.5);
+    animation: wobble 4s ease-in-out infinite;
+  }
+  @keyframes wobble {
+    0%, 100% { border-radius: 50% 60% 50% 50%; transform: rotate(0deg); }
+    50% { border-radius: 60% 50% 60% 50%; transform: rotate(-3deg); }
+  }
+  .logo-text {
+    background: linear-gradient(135deg, var(--candy-pink) 0%, var(--candy-yellow) 50%, var(--candy-mint) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .logo small {
+    display: block; font-size: 0.65rem; color: var(--text-dim);
+    font-weight: 400; letter-spacing: 0.15em; text-transform: uppercase;
+    margin-top: -4px;
+  }
+
+  nav { display: flex; gap: 0.5rem; }
+  nav button {
+    background: transparent;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-light);
+    padding: 0.6rem 1.5rem;
+    border-radius: 999px;
+    cursor: pointer;
+    font-family: 'Fredoka', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  nav button:hover {
+    background: rgba(255, 94, 156, 0.15);
+    border-color: var(--candy-pink);
+    transform: translateY(-2px);
+  }
+  nav button.active {
+    background: linear-gradient(135deg, var(--candy-pink) 0%, var(--candy-orange) 100%);
+    border-color: transparent;
+    color: white;
+    box-shadow: 0 4px 16px rgba(255, 94, 156, 0.4);
+  }
+
+  /* === HERO === */
+  .hero {
+    padding: 5rem 2rem 3rem;
+    text-align: center;
+    max-width: 1400px;
+    margin: 0 auto;
+    position: relative; z-index: 1;
+  }
+  .hero h1 {
+    font-family: 'Fredoka', sans-serif;
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    font-weight: 700;
+    margin-bottom: 1rem;
+    line-height: 1.1;
+  }
+  .hero h1 .word-pop {
+    background: linear-gradient(135deg, var(--candy-pink) 0%, var(--candy-yellow) 50%, var(--candy-mint) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    display: inline-block;
+    transform: rotate(-2deg);
+  }
+  .hero p {
+    font-size: 1.15rem;
+    color: var(--text-dim);
+    max-width: 580px;
+    margin: 0 auto 2rem;
+  }
+
+  .stats {
+    display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;
+    margin-top: 2.5rem;
+  }
+  .stat {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(255, 94, 156, 0.2);
+    border-radius: 24px;
+    padding: 1.25rem 1.75rem;
+    min-width: 130px;
+    transition: all 0.3s;
+  }
+  .stat:hover { transform: translateY(-4px) rotate(-1deg); border-color: var(--candy-pink); }
+  .stat:nth-child(1) { border-color: rgba(255, 94, 156, 0.3); }
+  .stat:nth-child(2) { border-color: rgba(78, 205, 196, 0.3); }
+  .stat:nth-child(3) { border-color: rgba(255, 217, 61, 0.3); }
+  .stat:nth-child(4) { border-color: rgba(167, 139, 250, 0.3); }
+
+  .stat-num {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 2.25rem; font-weight: 700;
+  }
+  .stat:nth-child(1) .stat-num { color: var(--candy-pink); }
+  .stat:nth-child(2) .stat-num { color: var(--candy-mint); }
+  .stat:nth-child(3) .stat-num { color: var(--candy-yellow); }
+  .stat:nth-child(4) .stat-num { color: var(--candy-purple); }
+  .stat-lbl {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-weight: 600;
+  }
+
+  /* === MAIN === */
+  main { max-width: 1400px; margin: 0 auto; padding: 2rem; position: relative; z-index: 1; }
+  .section-title {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 2rem;
+    font-weight: 600;
+    margin-bottom: 2rem;
+    display: flex; align-items: center; gap: 0.75rem;
+  }
+  .section-title::before {
+    content: '';
+    width: 8px; height: 32px;
+    background: linear-gradient(180deg, var(--candy-pink), var(--candy-yellow));
+    border-radius: 999px;
+  }
+
+  /* === FILME GRID === */
+  .filme-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 1.5rem;
+  }
+  .film-card {
+    background: var(--bg-card);
+    border-radius: 24px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: var(--shadow);
+    color: var(--text-dark);
+    position: relative;
+  }
+  .film-card:hover {
+    transform: translateY(-10px) rotate(-1deg);
+    box-shadow: var(--shadow-hover);
+  }
+  .film-card.kid-friendly {
+    border: 3px solid var(--candy-yellow);
+  }
+  .film-card.kid-friendly::after {
+    content: 'PT COPII';
+    position: absolute;
+    top: 10px; left: -28px;
+    background: var(--candy-yellow);
+    color: var(--text-dark);
+    padding: 4px 32px;
+    font-size: 0.65rem;
+    font-weight: 800;
+    transform: rotate(-35deg);
+    z-index: 3;
+    letter-spacing: 0.1em;
+  }
+  .film-card.adult-only {
+    border: 3px solid var(--candy-purple);
+  }
+  .film-card.adult-only::after {
+    content: '15+';
+    position: absolute;
+    top: 10px; left: -28px;
+    background: var(--candy-purple);
+    color: white;
+    padding: 4px 32px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    transform: rotate(-35deg);
+    z-index: 3;
+    letter-spacing: 0.1em;
+  }
+
+  .poster {
+    aspect-ratio: 2/3;
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  .poster .initials {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 4rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.85);
+    text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    z-index: 2;
+    letter-spacing: -0.05em;
+  }
+  .poster::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.2) 0%, transparent 50%);
+    z-index: 1;
+  }
+  .poster::after {
+    content: '';
+    position: absolute; bottom: 0; left: 0; right: 0; height: 50%;
+    background: linear-gradient(180deg, transparent, rgba(0,0,0,0.4));
+    z-index: 1;
+  }
+
+  .badge {
+    position: absolute; z-index: 4;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.7rem; font-weight: 800;
+    letter-spacing: 0.05em;
+    display: inline-flex; align-items: center; gap: 4px;
+  }
+  .badge-3d {
+    top: 12px; right: 12px;
+    background: var(--3d-cyan);
+    color: var(--text-dark);
+  }
+  .badge-rating {
+    bottom: 12px; right: 12px;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(10px);
+    color: var(--candy-yellow);
+  }
+
+  .film-info { padding: 1rem 1.25rem 1.25rem; }
+  .film-title {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    line-height: 1.25;
+    color: var(--text-dark);
+  }
+  .film-meta {
+    font-size: 0.8rem;
+    color: #7a6a8e;
+    display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;
+  }
+  .film-meta .dot { color: var(--candy-pink); }
+
+  /* === SPECTACOLE === */
+  .spectacol-card {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 0.75rem;
+    display: grid;
+    grid-template-columns: 1fr auto auto auto;
+    gap: 1.5rem;
+    align-items: center;
+    transition: all 0.3s;
+    cursor: pointer;
+  }
+  .spectacol-card:hover {
+    background: rgba(255, 94, 156, 0.1);
+    border-color: var(--candy-pink);
+    transform: translateX(4px);
+  }
+  .sp-film {
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 600;
+    font-size: 1.05rem;
+  }
+  .sp-sala { color: var(--text-dim); font-size: 0.85rem; margin-top: 2px; }
+  .sp-time {
+    color: var(--candy-yellow);
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 600;
+    font-size: 1.15rem;
+    min-width: 80px;
+  }
+  .sp-price {
+    font-weight: 700;
+    color: var(--candy-mint);
+    font-size: 1.05rem;
+  }
+  .sp-libere {
+    padding: 0.35rem 0.9rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    background: rgba(78, 205, 196, 0.2);
+    color: var(--candy-mint);
+    border: 1.5px solid var(--candy-mint);
+  }
+  .sp-libere.warning {
+    background: rgba(255, 217, 61, 0.2);
+    color: var(--candy-yellow);
+    border-color: var(--candy-yellow);
+  }
+  .sp-libere.full {
+    background: rgba(255, 94, 156, 0.2);
+    color: var(--candy-pink);
+    border-color: var(--candy-pink);
+  }
+  .day-header {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1.3rem;
+    margin: 2rem 0 1rem;
+    color: var(--candy-yellow);
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+  .day-header::after {
+    content: '';
+    flex: 1; height: 2px;
+    background: linear-gradient(90deg, var(--candy-yellow), transparent);
+    border-radius: 999px;
+  }
+
+  /* === MODAL === */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(26, 13, 46, 0.85);
+    backdrop-filter: blur(12px);
+    display: none; align-items: center; justify-content: center;
+    z-index: 200; padding: 2rem;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: linear-gradient(180deg, #2a1854 0%, #1a0d2e 100%);
+    border: 2px solid rgba(255, 94, 156, 0.3);
+    border-radius: 28px;
+    padding: 2.5rem;
+    max-width: 720px; width: 100%; max-height: 90vh; overflow-y: auto;
+    position: relative;
+    animation: modalIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  @keyframes modalIn {
+    from { opacity: 0; transform: scale(0.9) translateY(40px); }
+  }
+  .modal-close {
+    position: absolute; top: 1.25rem; right: 1.25rem;
+    background: linear-gradient(135deg, var(--candy-pink), var(--candy-orange));
+    border: none; color: white;
+    width: 40px; height: 40px; border-radius: 50%;
+    cursor: pointer; font-size: 1.3rem; font-weight: 700;
+    transition: all 0.3s;
+    box-shadow: 0 4px 12px rgba(255, 94, 156, 0.4);
+  }
+  .modal-close:hover { transform: rotate(90deg) scale(1.1); }
+  .modal h2 {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1.75rem;
+    margin-bottom: 0.5rem;
+  }
+  .modal-meta {
+    color: var(--text-dim);
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+  }
+  .modal h3 {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    color: var(--candy-yellow);
+  }
+
+  /* === SCHEMA SALA === */
+  .screen {
+    height: 50px; margin: 1.5rem auto;
+    background: linear-gradient(180deg, var(--candy-mint) 0%, transparent 100%);
+    border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+    opacity: 0.85;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-dark);
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.4em; font-size: 0.9rem;
+    max-width: 75%;
+    box-shadow: 0 -8px 24px rgba(78, 205, 196, 0.3);
+  }
+  .seats {
+    display: flex; flex-direction: column; gap: 8px;
+    margin: 1.5rem 0;
+    align-items: center;
+  }
+  .seat-row { display: flex; gap: 6px; align-items: center; }
+  .row-label {
+    width: 32px;
+    color: var(--text-dim);
+    font-size: 0.8rem;
+    font-weight: 600;
+    font-family: 'Fredoka', sans-serif;
+  }
+  .seat {
+    width: 30px; height: 30px;
+    border-radius: 50% 50% 30% 30% / 60% 60% 40% 40%;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    background: rgba(255, 255, 255, 0.15);
+    border: 2px solid rgba(255, 255, 255, 0.25);
+  }
+  .seat:hover { transform: scale(1.2) translateY(-2px); }
+  .seat.occupied {
+    background: var(--candy-pink);
+    border-color: #d63d7d;
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+  .seat.occupied:hover { transform: none; }
+  .seat.vip {
+    background: var(--candy-yellow);
+    border-color: #d4b300;
+    box-shadow: 0 0 8px rgba(255, 217, 61, 0.4);
+  }
+  .seat.selected {
+    background: var(--candy-mint);
+    border-color: #2bb5ac;
+    transform: scale(1.15);
+    box-shadow: 0 0 16px var(--candy-mint), 0 0 32px rgba(78, 205, 196, 0.4);
+  }
+
+  .legend {
+    display: flex; gap: 1.5rem; justify-content: center; margin-top: 1rem;
+    font-size: 0.85rem; flex-wrap: wrap;
+  }
+  .legend-item { display: flex; align-items: center; gap: 0.5rem; }
+  .legend-box {
+    width: 18px; height: 18px;
+    border-radius: 50% 50% 30% 30% / 60% 60% 40% 40%;
+  }
+
+  .total-box {
+    background: rgba(255, 94, 156, 0.1);
+    border: 2px solid rgba(255, 94, 156, 0.3);
+    border-radius: 20px;
+    padding: 1.25rem 1.5rem;
+    margin-top: 1.5rem;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .total-box .total-lbl { color: var(--text-dim); font-size: 0.8rem; }
+  .total-box .total-val {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--candy-yellow);
+  }
+  .btn-reserve {
+    width: 100%; padding: 1.1rem; margin-top: 1rem;
+    background: linear-gradient(135deg, var(--candy-pink) 0%, var(--candy-orange) 100%);
+    color: white; border: none; border-radius: 999px;
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1.05rem; font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 6px 20px rgba(255, 94, 156, 0.4);
+  }
+  .btn-reserve:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 12px 32px rgba(255, 94, 156, 0.5); }
+  .btn-reserve:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+  /* === INCASARI === */
+  .stats-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem; margin-bottom: 2rem;
+  }
+  .stat-card {
+    border-radius: 24px;
+    padding: 1.75rem;
+    color: white;
+    position: relative;
+    overflow: hidden;
+  }
+  .stat-card.online { background: linear-gradient(135deg, var(--candy-mint) 0%, #2bb5ac 100%); }
+  .stat-card.offline { background: linear-gradient(135deg, var(--candy-yellow) 0%, var(--candy-orange) 100%); color: var(--text-dark); }
+  .stat-card.total { background: linear-gradient(135deg, var(--candy-pink) 0%, var(--candy-purple) 100%); }
+  .stat-card::after {
+    content: '';
+    position: absolute;
+    top: -50%; right: -20%;
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .stat-card .label {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 700;
+    opacity: 0.9;
+  }
+  .stat-card .value {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 2.25rem;
+    font-weight: 700;
+    margin-top: 0.5rem;
+    line-height: 1;
+  }
+  .stat-card .sub {
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+    opacity: 0.85;
+  }
+
+  .table-card {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 1.5rem;
+  }
+  .table-row {
+    display: grid;
+    grid-template-columns: 60px 1fr 120px 90px 100px;
+    gap: 1rem;
+    padding: 0.75rem 0.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    align-items: center;
+    font-size: 0.9rem;
+  }
+  .table-row:last-child { border-bottom: none; }
+  .channel-badge {
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-align: center;
+  }
+  .channel-online { background: rgba(78, 205, 196, 0.2); color: var(--candy-mint); }
+  .channel-offline { background: rgba(255, 217, 61, 0.2); color: var(--candy-yellow); }
+
+  footer {
+    text-align: center;
+    padding: 4rem 2rem 2rem;
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    border-top: 2px solid rgba(255, 94, 156, 0.1);
+    margin-top: 4rem;
+    position: relative; z-index: 1;
+  }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">🍿</div>
+    <div>
+      <span class="logo-text">CinePlex</span>
+      <small>Iasi</small>
+    </div>
+  </div>
+  <nav>
+    <button class="active" onclick="showTab('filme', event)">Filme</button>
+    <button onclick="showTab('spectacole', event)">Spectacole</button>
+    <button onclick="showTab('incasari', event)">Incasari</button>
+  </nav>
+</header>
+
+<section class="hero">
+  <h1>Magie pe ecran <span class="word-pop">pentru toti</span></h1>
+  <p>De la animatii pentru pitici la blockbustere pentru adulti. Alege ce iti place, rezerva-ti locul si bucura-te de spectacol!</p>
+  <div class="stats" id="hero-stats"></div>
+</section>
+
+<main>
+  <div id="tab-filme">
+    <h2 class="section-title">Filme la cinema</h2>
+    <div class="filme-grid" id="filme-grid"></div>
+  </div>
+
+  <div id="tab-spectacole" class="hidden">
+    <h2 class="section-title">Programul saptamanii</h2>
+    <div id="spectacole-list"></div>
+  </div>
+
+  <div id="tab-incasari" class="hidden">
+    <h2 class="section-title">Incasari si statistici</h2>
+    <div class="stats-grid" id="incasari-stats"></div>
+    <div id="incasari-tabel"></div>
+  </div>
+</main>
+
+<div class="modal-overlay" id="modal" onclick="if (event.target === this) closeModal()">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">×</button>
+    <div id="modal-content"></div>
+  </div>
+</div>
+
+<footer>
+  <div style="font-family: 'Fredoka', sans-serif; font-size: 1.1rem; margin-bottom: 0.5rem;">🍿 CinePlex Iasi 🎬</div>
+  Sistem de rezervari cinema - proiect POO C++ 2026<br>
+  <small>Datele se actualizeaza la fiecare rulare a aplicatiei C++ (./cinema)</small>
+</footer>
+
+<script>
+const D = (typeof CINEMA_DATA !== 'undefined') ? CINEMA_DATA : { filme: [], sali: [], spectacole: [], rezervari: [] };
+
+// Paleta candy per categorie (gradient pentru postere)
+const POSTER_PALETTES = {
+  'Sci-Fi':    ['#a78bfa', '#5b21b6'],    // mov ametist
+  'Actiune':   ['#ef4444', '#7f1d1d'],    // rosu actiune
+  'Drama':     ['#8b5cf6', '#4c1d95'],    // mov adanc
+  'Animatie':  ['#fbbf24', '#f97316'],    // galben-portocaliu candy
+  'Comedie':   ['#ec4899', '#be185d'],    // roz vesel
+  'SF':        ['#06b6d4', '#0e7490'],    // cyan
+  'Biografic': ['#10b981', '#047857'],    // verde sofisticat
+  'Familie':   ['#fb7185', '#ffd93d'],    // roz cu galben - copii
+  'Crime':     ['#1e293b', '#0f172a'],    // gri-negru noir
+  'Istoric':   ['#92400e', '#451a03'],    // maro vintage
+  'Horror':    ['#27272a', '#18181b']     // negru
+};
+function getPosterStyle(cat) {
+  const cols = POSTER_PALETTES[cat] || ['#6366f1', '#312e81'];
+  return `background: linear-gradient(135deg, ${cols[0]} 0%, ${cols[1]} 100%);`;
+}
+function getInitials(titlu) {
+  const words = titlu.split(/[\s:]+/).filter(w => w.length > 0 && !/^\d+$/.test(w));
+  if (words.length >= 2) return (words[0][0] + words[1][0]).toUpperCase();
+  return titlu.substring(0, 2).toUpperCase();
+}
+
+// HERO STATS
+function renderHero() {
+  const el = document.getElementById('hero-stats');
+  el.innerHTML = `
+    <div class="stat"><div class="stat-num">${D.filme.length}</div><div class="stat-lbl">Filme</div></div>
+    <div class="stat"><div class="stat-num">${D.sali.length}</div><div class="stat-lbl">Sali</div></div>
+    <div class="stat"><div class="stat-num">${D.spectacole.length}</div><div class="stat-lbl">Spectacole</div></div>
+    <div class="stat"><div class="stat-num">${D.rezervari.length}</div><div class="stat-lbl">Bilete</div></div>
+  `;
+}
+
+// FILME
+function renderFilme() {
+  const grid = document.getElementById('filme-grid');
+  grid.innerHTML = D.filme.map(f => {
+    const isKid = f.varsta === 0;
+    const isAdult = f.varsta >= 15;
+    let classes = ['film-card'];
+    if (isKid) classes.push('kid-friendly');
+    else if (isAdult) classes.push('adult-only');
+
+    return `
+    <div class="${classes.join(' ')}" onclick="openFilm(${f.id})">
+      <div class="poster" style="${getPosterStyle(f.categorie)}">
+        <div class="initials">${getInitials(f.titlu)}</div>
+        ${f.tip === '3D' ? '<span class="badge badge-3d">3D</span>' : ''}
+        <span class="badge badge-rating">★ ${f.rating.toFixed(1)}</span>
+      </div>
+      <div class="film-info">
+        <div class="film-title">${f.titlu}</div>
+        <div class="film-meta">
+          <span>${f.categorie}</span>
+          <span class="dot">•</span>
+          <span>${f.durata} min</span>
+          <span class="dot">•</span>
+          <span>${f.varsta}+</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// MODAL FILM
+function openFilm(filmId) {
+  const f = D.filme.find(x => x.id === filmId);
+  if (!f) return;
+  const spectacole = D.spectacole.filter(s => s.filmId === filmId);
+  document.getElementById('modal-content').innerHTML = `
+    <h2>${f.titlu}</h2>
+    <div class="modal-meta">
+      ${f.categorie} &middot; ${f.durata} min &middot; ${f.varsta}+ &middot; ${f.tip}
+      &middot; ${f.an} &middot; ★ ${f.rating.toFixed(1)}/10
+      <br><span style="color: var(--candy-mint);">Regizor:</span> ${f.regizor}
+    </div>
+    <h3>Spectacole disponibile (${spectacole.length})</h3>
+    <div>
+      ${spectacole.map(s => {
+        const sala = D.sali.find(x => x.id === s.salaId);
+        const cls = s.libere === 0 ? 'full' : (s.libere * 3 < s.total ? 'warning' : '');
+        return `<div class="spectacol-card" onclick="openSpectacol(${s.id})">
+          <div>
+            <div class="sp-film">${s.data}</div>
+            <div class="sp-sala">Sala ${sala ? sala.numar : '?'}${sala && sala.vip ? ' VIP' : ''}</div>
+          </div>
+          <div class="sp-time">${s.ora}</div>
+          <div class="sp-price">${s.pret.toFixed(0)} RON</div>
+          <div class="sp-libere ${cls}">${s.libere}/${s.total}</div>
+        </div>`;
+      }).join('') || '<p style="color:var(--text-dim)">Niciun spectacol programat.</p>'}
+    </div>
+  `;
+  document.getElementById('modal').classList.add('show');
+}
+
+// MODAL SPECTACOL - schema interactiva
+let selectedSeats = [];
+let currentSpectacol = null;
+
+function openSpectacol(spId) {
+  const sp = D.spectacole.find(s => s.id === spId);
+  if (!sp) return;
+  currentSpectacol = sp;
+  selectedSeats = [];
+  const f = D.filme.find(x => x.id === sp.filmId);
+  const sala = D.sali.find(x => x.id === sp.salaId);
+
+  let seatsHTML = '';
+  for (let r = 0; r < sp.harta.length; r++) {
+    const row = sp.harta[r];
+    const randVIP = sala.vip || r >= sp.harta.length - 2;
+    let rowHTML = `<div class="seat-row"><span class="row-label">R${r+1}</span>`;
+    for (let col = 0; col < row.length; col++) {
+      const occupied = row[col] === '1';
+      const classes = ['seat'];
+      if (occupied) classes.push('occupied');
+      else if (randVIP) classes.push('vip');
+      rowHTML += `<div class="${classes.join(' ')}"
+                       data-row="${r}" data-col="${col}"
+                       ${!occupied ? `onclick="toggleSeat(this, ${r}, ${col})"` : ''}></div>`;
+    }
+    rowHTML += `</div>`;
+    seatsHTML += rowHTML;
+  }
+
+  document.getElementById('modal-content').innerHTML = `
+    <h2>${f.titlu}</h2>
+    <div class="modal-meta">
+      <span style="color: var(--candy-yellow);">${sp.data}</span> &middot;
+      <span style="color: var(--candy-yellow);">${sp.ora}</span> &middot;
+      Sala ${sala.numar}${sala.vip ? ' VIP' : ''} &middot;
+      ${sp.libere}/${sp.total} locuri libere
+    </div>
+    <div class="screen">ECRAN</div>
+    <div class="seats">${seatsHTML}</div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-box" style="background:rgba(255,255,255,0.15); border:2px solid rgba(255,255,255,0.25);"></div>Liber</div>
+      <div class="legend-item"><div class="legend-box" style="background:var(--candy-yellow);"></div>VIP</div>
+      <div class="legend-item"><div class="legend-box" style="background:var(--candy-mint);"></div>Selectat</div>
+      <div class="legend-item"><div class="legend-box" style="background:var(--candy-pink); opacity:0.6;"></div>Ocupat</div>
+    </div>
+    <div class="total-box">
+      <div>
+        <div class="total-lbl">Locuri selectate</div>
+        <div style="font-weight:700; font-size:1.25rem; color: var(--candy-mint);"><span id="seat-count">0</span></div>
+      </div>
+      <div style="text-align: right;">
+        <div class="total-lbl">Total</div>
+        <div class="total-val"><span id="total-val">0</span> RON</div>
+      </div>
+    </div>
+    <button class="btn-reserve" id="btn-reserve" disabled onclick="finalizeReservation()">Selecteaza locuri</button>
+  `;
+  document.getElementById('modal').classList.add('show');
+}
+
+function toggleSeat(el, r, col) {
+  const key = `${r}-${col}`;
+  const idx = selectedSeats.indexOf(key);
+  if (idx >= 0) {
+    selectedSeats.splice(idx, 1);
+    el.classList.remove('selected');
+  } else {
+    selectedSeats.push(key);
+    el.classList.add('selected');
+  }
+  updateTotal();
+}
+
+function updateTotal() {
+  const n = selectedSeats.length;
+  const total = currentSpectacol.pret * n;
+  document.getElementById('seat-count').textContent = n;
+  document.getElementById('total-val').textContent = total.toFixed(2);
+  const btn = document.getElementById('btn-reserve');
+  btn.disabled = n === 0;
+  btn.textContent = n === 0 ? 'Selecteaza locuri' : `Rezerva ${n} ${n === 1 ? 'bilet' : 'bilete'}`;
+}
+
+function finalizeReservation() {
+  const n = selectedSeats.length;
+  alert(`Bravo! Ai selectat ${n} ${n === 1 ? 'bilet' : 'bilete'} pentru spectacolul #${currentSpectacol.id}.\n\nIn aplicatia reala, ai face plata aici si ai primi codul de confirmare prin email.\n\n(Aceasta e pagina demo - rezervarile reale se fac in aplicatia consola C++)`);
+  closeModal();
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('show');
+}
+
+// SPECTACOLE TAB - grupate pe zile
+const ZILE_RO = ['Duminica', 'Luni', 'Marti', 'Miercuri', 'Joi', 'Vineri', 'Sambata'];
+function ziSaptamana(dataYMD) {
+  // Zeller in JS
+  const parts = dataYMD.split('-');
+  const d = new Date(parts[0], parts[1]-1, parts[2]);
+  return ZILE_RO[d.getDay()];
+}
+
+function renderSpectacole() {
+  const list = document.getElementById('spectacole-list');
+  const grouped = {};
+  D.spectacole.forEach(s => {
+    if (!grouped[s.data]) grouped[s.data] = [];
+    grouped[s.data].push(s);
+  });
+  list.innerHTML = Object.keys(grouped).sort().map(data => `
+    <div class="day-header">${ziSaptamana(data)}, ${data}</div>
+    ${grouped[data].sort((a,b) => a.ora.localeCompare(b.ora)).map(s => {
+      const f = D.filme.find(x => x.id === s.filmId);
+      const sala = D.sali.find(x => x.id === s.salaId);
+      const cls = s.libere === 0 ? 'full' : (s.libere * 3 < s.total ? 'warning' : '');
+      return `<div class="spectacol-card" onclick="openSpectacol(${s.id})">
+        <div>
+          <div class="sp-film">${f ? f.titlu : '?'}${f && f.tip === '3D' ? ' • 3D' : ''}</div>
+          <div class="sp-sala">Sala ${sala ? sala.numar : '?'}${sala && sala.vip ? ' VIP' : ''}</div>
+        </div>
+        <div class="sp-time">${s.ora}</div>
+        <div class="sp-price">${s.pret.toFixed(0)} RON</div>
+        <div class="sp-libere ${cls}">${s.libere}/${s.total}</div>
+      </div>`;
+    }).join('')}
+  `).join('');
+}
+
+// INCASARI
+function renderIncasari() {
+  const online = D.rezervari.filter(r => r.online);
+  const offline = D.rezervari.filter(r => !r.online);
+  const sumOnline = online.reduce((s, r) => s + r.pret, 0);
+  const sumOffline = offline.reduce((s, r) => s + r.pret, 0);
+
+  document.getElementById('incasari-stats').innerHTML = `
+    <div class="stat-card online">
+      <div class="label">Online</div>
+      <div class="value">${sumOnline.toFixed(2)} RON</div>
+      <div class="sub">${online.length} bilete vandute online</div>
+    </div>
+    <div class="stat-card offline">
+      <div class="label">La casa</div>
+      <div class="value">${sumOffline.toFixed(2)} RON</div>
+      <div class="sub">${offline.length} bilete la casa</div>
+    </div>
+    <div class="stat-card total">
+      <div class="label">Total general</div>
+      <div class="value">${(sumOnline + sumOffline).toFixed(2)} RON</div>
+      <div class="sub">${D.rezervari.length} bilete total</div>
+    </div>
+  `;
+
+  document.getElementById('incasari-tabel').innerHTML = D.rezervari.length === 0
+    ? '<p style="color: var(--text-dim); text-align: center; padding: 2rem;">Nicio rezervare inca.</p>'
+    : `<div class="table-card">
+      ${D.rezervari.map(r => {
+        const f = D.filme.find(x => D.spectacole.find(s => s.id === r.spectacolId && s.filmId === x.id));
+        return `<div class="table-row">
+          <div style="color:var(--text-dim);">#${r.id}</div>
+          <div>${r.client} <span style="color:var(--text-dim); font-size:0.85rem;">(${r.tip})</span></div>
+          <div style="color:var(--text-dim); font-size:0.85rem;">${f ? (f.titlu.length > 18 ? f.titlu.substring(0,17) + '…' : f.titlu) : '?'}</div>
+          <div class="channel-badge ${r.online ? 'channel-online' : 'channel-offline'}">${r.online ? 'ONLINE' : 'CASA'}</div>
+          <div style="text-align:right; font-weight:700; font-family: 'Fredoka', sans-serif;">${r.pret.toFixed(2)}</div>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+// TABS
+function showTab(name, ev) {
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  if (ev && ev.target) ev.target.classList.add('active');
+  document.getElementById('tab-filme').classList.toggle('hidden', name !== 'filme');
+  document.getElementById('tab-spectacole').classList.toggle('hidden', name !== 'spectacole');
+  document.getElementById('tab-incasari').classList.toggle('hidden', name !== 'incasari');
+}
+
+// INIT
+renderHero();
+renderFilme();
+renderSpectacole();
+renderIncasari();
+</script>
+</body>
+</html>

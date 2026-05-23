@@ -24,7 +24,10 @@ public:
     Rezervare(Persoana* c, Spectacol* sp, int r, int col);
     Rezervare(const Rezervare& r);
     Rezervare& operator=(const Rezervare& r);
-    ~Rezervare() = default;
+    virtual ~Rezervare() = default;
+
+    // Polimorfism: clasa de baza Rezervare returneaza false, RezervareOnline true.
+    virtual bool EsteOnline() const { return false; }
 
     double CalculeazaPret() const;
     bool EsteVineri() const;
