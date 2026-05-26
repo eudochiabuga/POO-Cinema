@@ -1,5 +1,0 @@
-# tip|id|numar|capacitate|randuri|coloane|[VIP: supliment|tipScaun|meniu1;meniu2;...]
-NRM|1|1|48|6|8||||
-NRM|2|2|30|5|6||||
-NRM|3|3|60|6|10||||
-VIP|4|VIP|20|4|5|0.5|Recliner|Popcorn premium;Cocktail fara alcool;Platou de branza;Caramele de ciocolata

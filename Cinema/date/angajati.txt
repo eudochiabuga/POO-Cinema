@@ -1,5 +1,0 @@
-# id|rol|nume|username|parola|salariu
-1|Admin|Andrei Popescu|admin|admin|8000
-2|Manager|Maria Ionescu|manager|manager|6500
-3|Casier|Ion Vasile|casier|casier|3500
-4|Casier|Ana Dumitrescu|ana|ana123|3200

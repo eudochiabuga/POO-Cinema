@@ -21,31 +21,40 @@ else()
     add_compile_options(-Wall -Wextra -Wno-deprecated-declarations)
 endif()
 
+# Directorul cu sursele C++
+set(SRCDIR src)
+
 # Sursele de baza (biblioteca interna, fara entry-point)
 set(LIB_SOURCES
-    Film.cpp
-    Sala.cpp
-    SalaVIP.cpp
-    Spectacol.cpp
-    Rezervare.cpp
-    RezervareOnline.cpp
-    Persoana.cpp
-    TipPersoana.cpp
-    Angajat.cpp
-    TipAngajat.cpp
-    SistemAutentificare.cpp
-    Cinematograf.cpp
-    Persistenta.cpp
-    Raport.cpp
-    AppContext.cpp
+    ${SRCDIR}/Film.cpp
+    ${SRCDIR}/Sala.cpp
+    ${SRCDIR}/SalaVIP.cpp
+    ${SRCDIR}/Spectacol.cpp
+    ${SRCDIR}/Rezervare.cpp
+    ${SRCDIR}/RezervareOnline.cpp
+    ${SRCDIR}/Persoana.cpp
+    ${SRCDIR}/TipPersoana.cpp
+    ${SRCDIR}/Angajat.cpp
+    ${SRCDIR}/TipAngajat.cpp
+    ${SRCDIR}/SistemAutentificare.cpp
+    ${SRCDIR}/Cinematograf.cpp
+    ${SRCDIR}/Persistenta.cpp
+    ${SRCDIR}/Raport.cpp
+    ${SRCDIR}/AppContext.cpp
 )
 
 # Aplicatia consola
-add_executable(cinema main_consola.cpp ${LIB_SOURCES})
+add_executable(cinema ${SRCDIR}/main_consola.cpp ${LIB_SOURCES})
+target_include_directories(cinema PRIVATE ${SRCDIR})
+
+# Serverul web
+add_executable(cinema_web ${SRCDIR}/main_web.cpp ${LIB_SOURCES})
+target_include_directories(cinema_web PRIVATE ${SRCDIR})
+target_link_libraries(cinema_web pthread)
 
 # Testele unitare
 add_executable(test_cinema tests/test_cinema.cpp ${LIB_SOURCES})
-target_include_directories(test_cinema PRIVATE .)
+target_include_directories(test_cinema PRIVATE ${SRCDIR})
 
 enable_testing()
 add_test(NAME unit_tests COMMAND test_cinema)

@@ -1,1 +1,0 @@
-# id|titlu|categorie|durata|varstaMin|limba|regizor|an|rating|poster

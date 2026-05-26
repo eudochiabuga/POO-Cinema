@@ -654,6 +654,40 @@
   </div>
 </main>
 
+<!-- Formular date personale rezervare -->
+<div id="rezervare-form-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:#2a1854;border-radius:20px;padding:2rem;width:90%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,0.5);">
+    <h3 style="color:#ff5e9c;margin-bottom:1.2rem;font-size:1.2rem;">🎟️ Date rezervare</h3>
+    <div style="margin-bottom:1rem;">
+      <label style="color:#9b8eb8;font-size:0.85rem;display:block;margin-bottom:4px;">Nume complet *</label>
+      <input id="rv-nume" type="text" placeholder="ex: Ion Popescu" style="width:100%;padding:0.7rem;border-radius:10px;border:1px solid #4a3580;background:#1a0d2e;color:#fff;font-size:1rem;">
+    </div>
+    <div style="margin-bottom:1rem;">
+      <label style="color:#9b8eb8;font-size:0.85rem;display:block;margin-bottom:4px;">Vârsta *</label>
+      <input id="rv-varsta" type="number" min="1" max="120" placeholder="ex: 25" style="width:100%;padding:0.7rem;border-radius:10px;border:1px solid #4a3580;background:#1a0d2e;color:#fff;font-size:1rem;">
+    </div>
+    <div style="margin-bottom:1rem;">
+      <label style="color:#9b8eb8;font-size:0.85rem;display:block;margin-bottom:4px;">Tip persoană</label>
+      <select id="rv-tip" style="width:100%;padding:0.7rem;border-radius:10px;border:1px solid #4a3580;background:#1a0d2e;color:#fff;font-size:1rem;">
+        <option value="Adult">Adult</option>
+        <option value="Student">Student</option>
+        <option value="Elev">Elev</option>
+        <option value="Pensionar">Pensionar</option>
+        <option value="Copil">Copil</option>
+      </select>
+    </div>
+    <div style="margin-bottom:1.2rem;">
+      <label style="color:#9b8eb8;font-size:0.85rem;display:block;margin-bottom:4px;">Email (opțional)</label>
+      <input id="rv-email" type="email" placeholder="ex: ion@email.com" style="width:100%;padding:0.7rem;border-radius:10px;border:1px solid #4a3580;background:#1a0d2e;color:#fff;font-size:1rem;">
+    </div>
+    <div id="rv-eroare" style="color:#ff5e9c;font-size:0.9rem;margin-bottom:0.8rem;"></div>
+    <div style="display:flex;gap:1rem;">
+      <button onclick="document.getElementById('rezervare-form-overlay').style.display='none'" style="flex:1;padding:0.8rem;border-radius:12px;border:2px solid #4a3580;background:transparent;color:#9b8eb8;font-size:1rem;cursor:pointer;">Anulează</button>
+      <button id="rv-submit" onclick="submitRezervare()" style="flex:2;padding:0.8rem;border-radius:12px;border:none;background:linear-gradient(135deg,#ff5e9c,#ff9a3c);color:#fff;font-size:1rem;font-weight:700;cursor:pointer;">Confirmă</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="modal" onclick="if (event.target === this) closeModal()">
   <div class="modal">
     <button class="modal-close" onclick="closeModal()">×</button>
@@ -695,13 +729,25 @@ function getInitials(titlu) {
 }
 
 // HERO STATS
-function renderHero() {
+async function renderHero() {
   const el = document.getElementById('hero-stats');
+  // Numara biletele live din toate spectacolele
+  let totalBilete = D.rezervari.length; // fallback
+  try {
+    let count = 0;
+    await Promise.all(D.spectacole.map(async s => {
+      const resp = await fetch(`http://localhost:8080/api/locuri-ocupate?spectacolID=${s.id}`);
+      const data = await resp.json();
+      count += data.length;
+    }));
+    totalBilete = count;
+  } catch(e) { /* server oprit, folosim valoarea din data.js */ }
+
   el.innerHTML = `
     <div class="stat"><div class="stat-num">${D.filme.length}</div><div class="stat-lbl">Filme</div></div>
     <div class="stat"><div class="stat-num">${D.sali.length}</div><div class="stat-lbl">Sali</div></div>
     <div class="stat"><div class="stat-num">${D.spectacole.length}</div><div class="stat-lbl">Spectacole</div></div>
-    <div class="stat"><div class="stat-num">${D.rezervari.length}</div><div class="stat-lbl">Bilete</div></div>
+    <div class="stat"><div class="stat-num" id="stat-bilete">${totalBilete}</div><div class="stat-lbl">Bilete</div></div>
   `;
 }
 
@@ -737,10 +783,23 @@ function renderFilme() {
 }
 
 // MODAL FILM
-function openFilm(filmId) {
+async function openFilm(filmId) {
   const f = D.filme.find(x => x.id === filmId);
   if (!f) return;
   const spectacole = D.spectacole.filter(s => s.filmId === filmId);
+
+  // Fetch locuri ocupate live pentru fiecare spectacol
+  const ocupateMap = {};
+  await Promise.all(spectacole.map(async s => {
+    try {
+      const resp = await fetch(`http://localhost:8080/api/locuri-ocupate?spectacolID=${s.id}`);
+      const data = await resp.json();
+      ocupateMap[s.id] = data.length;
+    } catch(e) {
+      ocupateMap[s.id] = s.total - s.libere; // fallback static
+    }
+  }));
+
   document.getElementById('modal-content').innerHTML = `
     <h2>${f.titlu}</h2>
     <div class="modal-meta">
@@ -752,7 +811,9 @@ function openFilm(filmId) {
     <div>
       ${spectacole.map(s => {
         const sala = D.sali.find(x => x.id === s.salaId);
-        const cls = s.libere === 0 ? 'full' : (s.libere * 3 < s.total ? 'warning' : '');
+        const ocupate = ocupateMap[s.id] ?? (s.total - s.libere);
+        const libere = s.total - ocupate;
+        const cls = libere === 0 ? 'full' : (libere * 3 < s.total ? 'warning' : '');
         return `<div class="spectacol-card" onclick="openSpectacol(${s.id})">
           <div>
             <div class="sp-film">${s.data}</div>
@@ -760,7 +821,7 @@ function openFilm(filmId) {
           </div>
           <div class="sp-time">${s.ora}</div>
           <div class="sp-price">${s.pret.toFixed(0)} RON</div>
-          <div class="sp-libere ${cls}">${s.libere}/${s.total}</div>
+          <div class="sp-libere ${cls}">${libere}/${s.total}</div>
         </div>`;
       }).join('') || '<p style="color:var(--text-dim)">Niciun spectacol programat.</p>'}
     </div>
@@ -771,8 +832,10 @@ function openFilm(filmId) {
 // MODAL SPECTACOL - schema interactiva
 let selectedSeats = [];
 let currentSpectacol = null;
+let consecutiveMode = false;
+let consecutiveN = 1;
 
-function openSpectacol(spId) {
+async function openSpectacol(spId) {
   const sp = D.spectacole.find(s => s.id === spId);
   if (!sp) return;
   currentSpectacol = sp;
@@ -780,13 +843,26 @@ function openSpectacol(spId) {
   const f = D.filme.find(x => x.id === sp.filmId);
   const sala = D.sali.find(x => x.id === sp.salaId);
 
+  // Cerere live la server pentru locuri ocupate
+  let occupiedSet = new Set();
+  try {
+    const resp = await fetch(`http://localhost:8080/api/locuri-ocupate?spectacolID=${spId}`);
+    const data = await resp.json();
+    data.forEach(s => occupiedSet.add(`${s.rand}-${s.coloana}`));
+  } catch(e) {
+    // Server oprit - folosim datele din data.js
+    for (let r = 0; r < sp.harta.length; r++)
+      for (let col = 0; col < sp.harta[r].length; col++)
+        if (sp.harta[r][col] === '1') occupiedSet.add(`${r}-${col}`);
+  }
+
   let seatsHTML = '';
   for (let r = 0; r < sp.harta.length; r++) {
     const row = sp.harta[r];
     const randVIP = sala.vip || r >= sp.harta.length - 2;
     let rowHTML = `<div class="seat-row"><span class="row-label">R${r+1}</span>`;
     for (let col = 0; col < row.length; col++) {
-      const occupied = row[col] === '1';
+      const occupied = occupiedSet.has(`${r}-${col}`);
       const classes = ['seat'];
       if (occupied) classes.push('occupied');
       else if (randVIP) classes.push('vip');
@@ -808,6 +884,17 @@ function openSpectacol(spId) {
     </div>
     <div class="screen">ECRAN</div>
     <div class="seats">${seatsHTML}</div>
+    <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;background:rgba(255,255,255,0.05);border-radius:12px;padding:0.6rem 1rem;margin-bottom:0.5rem;">
+      <span style="color:#9b8eb8;font-size:0.85rem;white-space:nowrap;">Bilete consecutive:</span>
+      <input id="consec-n" type="number" min="1" max="20" value="1"
+        style="width:55px;padding:3px 8px;border-radius:8px;border:1px solid #4a3580;background:#1a0d2e;color:#fff;font-size:0.9rem;text-align:center"
+        oninput="consecutiveN=parseInt(this.value)||1">
+      <button id="btn-consec" onclick="toggleConsecutiveMode()"
+        style="padding:4px 14px;border-radius:8px;border:1.5px solid #4a3580;background:transparent;color:#9b8eb8;font-size:0.82rem;cursor:pointer;transition:all 0.2s">
+        Modul consecutiv: OFF
+      </button>
+      <span id="consec-hint" style="color:#ffd93d;font-size:0.8rem;display:none;">👆 Click pe primul loc</span>
+    </div>
     <div class="legend">
       <div class="legend-item"><div class="legend-box" style="background:rgba(255,255,255,0.15); border:2px solid rgba(255,255,255,0.25);"></div>Liber</div>
       <div class="legend-item"><div class="legend-box" style="background:var(--candy-yellow);"></div>VIP</div>
@@ -830,6 +917,7 @@ function openSpectacol(spId) {
 }
 
 function toggleSeat(el, r, col) {
+  if (consecutiveMode) { selectConsecutiveSeats(r, col); return; }
   const key = `${r}-${col}`;
   const idx = selectedSeats.indexOf(key);
   if (idx >= 0) {
@@ -838,6 +926,61 @@ function toggleSeat(el, r, col) {
   } else {
     selectedSeats.push(key);
     el.classList.add('selected');
+  }
+  updateTotal();
+}
+
+function toggleConsecutiveMode() {
+  consecutiveMode = !consecutiveMode;
+  consecutiveN = parseInt(document.getElementById('consec-n').value) || 1;
+  const btn  = document.getElementById('btn-consec');
+  const hint = document.getElementById('consec-hint');
+  // Clear current selection when toggling
+  selectedSeats.forEach(key => {
+    const [rv, cv] = key.split('-').map(Number);
+    const s = document.querySelector(`.seat[data-row="${rv}"][data-col="${cv}"]`);
+    if (s) s.classList.remove('selected');
+  });
+  selectedSeats = [];
+  updateTotal();
+  if (consecutiveMode) {
+    btn.style.cssText += ';background:rgba(255,217,61,0.2);border-color:#ffd93d;color:#ffd93d;';
+    btn.textContent = 'Modul consecutiv: ON';
+    hint.style.display = 'inline';
+  } else {
+    btn.style.cssText += ';background:transparent;border-color:#4a3580;color:#9b8eb8;';
+    btn.textContent = 'Modul consecutiv: OFF';
+    hint.style.display = 'none';
+  }
+}
+
+function selectConsecutiveSeats(r, colStart) {
+  consecutiveN = parseInt(document.getElementById('consec-n').value) || 1;
+  const sala = D.sali.find(x => x.id === currentSpectacol.salaId);
+  const nCols = sala ? sala.coloane : (currentSpectacol.harta[r] ? currentSpectacol.harta[r].length : 10);
+  if (colStart + consecutiveN > nCols) {
+    alert(`Nu sunt ${consecutiveN} locuri consecutive de la aceasta pozitie pana la capatul randului!`);
+    return;
+  }
+  for (let c = colStart; c < colStart + consecutiveN; c++) {
+    const seat = document.querySelector(`.seat[data-row="${r}"][data-col="${c}"]`);
+    if (!seat || seat.classList.contains('occupied')) {
+      alert(`Locul ${c+1} de pe randul ${r+1} este deja ocupat! Alege alta pozitie de start.`);
+      return;
+    }
+  }
+  // Clear previous selection
+  selectedSeats.forEach(key => {
+    const [rv, cv] = key.split('-').map(Number);
+    const seat = document.querySelector(`.seat[data-row="${rv}"][data-col="${cv}"]`);
+    if (seat) seat.classList.remove('selected');
+  });
+  selectedSeats = [];
+  for (let c = colStart; c < colStart + consecutiveN; c++) {
+    const key = `${r}-${c}`;
+    selectedSeats.push(key);
+    const seat = document.querySelector(`.seat[data-row="${r}"][data-col="${c}"]`);
+    if (seat) seat.classList.add('selected');
   }
   updateTotal();
 }
@@ -853,13 +996,114 @@ function updateTotal() {
 }
 
 function finalizeReservation() {
+  if (selectedSeats.length === 0) return;
   const n = selectedSeats.length;
-  alert(`Bravo! Ai selectat ${n} ${n === 1 ? 'bilet' : 'bilete'} pentru spectacolul #${currentSpectacol.id}.\n\nIn aplicatia reala, ai face plata aici si ai primi codul de confirmare prin email.\n\n(Aceasta e pagina demo - rezervarile reale se fac in aplicatia consola C++)`);
+  let formHtml = `<h3 style="color:#ff5e9c;margin-bottom:1rem;font-size:1.15rem;">🎟️ Date rezervare — ${n} ${n===1?'bilet':'bilete'}</h3>`;
+  selectedSeats.forEach((key, i) => {
+    const [r, c] = key.split('-').map(Number);
+    formHtml += `
+    <div style="border:1px solid #4a3580;border-radius:12px;padding:0.9rem;margin-bottom:0.6rem;background:rgba(255,255,255,0.03)">
+      <div style="color:#ffd93d;font-size:0.82rem;font-weight:700;margin-bottom:0.5rem">Bilet ${i+1} — Rand ${r+1}, Loc ${c+1}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-bottom:0.4rem">
+        <div><label style="color:#9b8eb8;font-size:0.76rem;display:block;margin-bottom:2px">Nume *</label>
+          <input id="rv-nume-${i}" type="text" placeholder="Ion Popescu" style="width:100%;padding:0.45rem;border-radius:7px;border:1px solid #4a3580;background:#1a0d2e;color:#fff;font-size:0.88rem"></div>
+        <div><label style="color:#9b8eb8;font-size:0.76rem;display:block;margin-bottom:2px">Vârsta *</label>
+          <input id="rv-varsta-${i}" type="number" min="1" max="120" placeholder="25" style="width:100%;padding:0.45rem;border-radius:7px;border:1px solid #4a3580;background:#1a0d2e;color:#fff;font-size:0.88rem"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem">
+        <div><label style="color:#9b8eb8;font-size:0.76rem;display:block;margin-bottom:2px">Tip</label>
+          <select id="rv-tip-${i}" style="width:100%;padding:0.45rem;border-radius:7px;border:1px solid #4a3580;background:#1a0d2e;color:#fff;font-size:0.88rem">
+            <option value="Adult">Adult</option><option value="Student">Student (-20%)</option>
+            <option value="Elev">Elev (-30%)</option><option value="Pensionar">Pensionar (-25%)</option><option value="Copil">Copil (-50%)</option>
+          </select></div>
+        <div><label style="color:#9b8eb8;font-size:0.76rem;display:block;margin-bottom:2px">Email</label>
+          <input id="rv-email-${i}" type="email" placeholder="optional" style="width:100%;padding:0.45rem;border-radius:7px;border:1px solid #4a3580;background:#1a0d2e;color:#fff;font-size:0.88rem"></div>
+      </div>
+    </div>`;
+  });
+  formHtml += `
+  <div id="rv-eroare" style="color:#ff5e9c;font-size:0.88rem;margin-bottom:0.5rem;min-height:1.2rem"></div>
+  <div style="display:flex;gap:0.75rem">
+    <button onclick="document.getElementById('rezervare-form-overlay').style.display='none'" style="flex:1;padding:0.75rem;border-radius:12px;border:2px solid #4a3580;background:transparent;color:#9b8eb8;font-size:0.95rem;cursor:pointer">Anulează</button>
+    <button id="rv-submit" onclick="submitRezervare()" style="flex:2;padding:0.75rem;border-radius:12px;border:none;background:linear-gradient(135deg,#ff5e9c,#ff9a3c);color:#fff;font-size:0.95rem;font-weight:700;cursor:pointer">Confirmă ${n} ${n===1?'bilet':'bilete'}</button>
+  </div>`;
+  const overlay = document.getElementById('rezervare-form-overlay');
+  const inner = overlay.querySelector('div');
+  inner.style.overflowY = 'auto';
+  inner.style.maxHeight = '85vh';
+  inner.innerHTML = formHtml;
+  overlay.style.display = 'flex';
+}
+
+async function submitRezervare() {
+  const n = selectedSeats.length;
+  const ticketData = [];
+  for (let i = 0; i < n; i++) {
+    const numeEl   = document.getElementById(`rv-nume-${i}`);
+    const varstaEl = document.getElementById(`rv-varsta-${i}`);
+    const tipEl    = document.getElementById(`rv-tip-${i}`);
+    const emailEl  = document.getElementById(`rv-email-${i}`);
+    if (!numeEl || !varstaEl) continue;
+    const nume   = numeEl.value.trim();
+    const varsta = varstaEl.value.trim();
+    if (!nume || !varsta) {
+      document.getElementById('rv-eroare').textContent = `Bilet ${i+1}: Nume si varsta sunt obligatorii!`;
+      return;
+    }
+    ticketData.push({ nume, varsta, tip: tipEl ? tipEl.value : 'Adult', email: emailEl ? emailEl.value.trim() : '' });
+  }
+  document.getElementById('rv-eroare').textContent = '';
+
+  const btn = document.getElementById('rv-submit');
+  btn.disabled = true;
+  btn.textContent = 'Se trimite...';
+
+  let confirmari = [];
+  let erori = [];
+
+  for (let i = 0; i < selectedSeats.length; i++) {
+    const [r, c] = selectedSeats[i].split('-').map(Number);
+    const { nume, varsta, tip, email } = ticketData[i] || { nume:'?', varsta:'0', tip:'Adult', email:'' };
+    try {
+      const resp = await fetch('http://localhost:8080/api/rezervare', {
+        method: 'POST',
+        headers: apiHeaders(),
+        body: JSON.stringify({ spectacolID: currentSpectacol.id, rand: r, coloana: c, nume, varsta, tip, email })
+      });
+      const data = await resp.json();
+      if (data.success) confirmari.push(data.mesaj);
+      else erori.push(`Rand ${r+1}, Loc ${c+1}: ${data.error}`);
+    } catch(e) {
+      erori.push(`Rand ${r+1}, Loc ${c+1}: Server oprit! Ruleaza ./cinema_web in terminal.`);
+    }
+  }
+
+  document.getElementById('rezervare-form-overlay').style.display = 'none';
+  btn.disabled = false;
+  btn.textContent = 'Confirma';
+
+  let msg = '';
+  if (confirmari.length > 0) msg += '✅ ' + confirmari.join('\n✅ ');
+  if (erori.length > 0) msg += (msg ? '\n\n' : '') + '❌ ' + erori.join('\n❌ ');
+  alert(msg || 'Eroare necunoscuta.');
+
+  if (confirmari.length > 0) {
+    selectedSeats.forEach(key => {
+      const [r, c] = key.split('-').map(Number);
+      const el = document.querySelector(`.seat[data-row="${r}"][data-col="${c}"]`);
+      if (el) { el.classList.remove('selected','free'); el.classList.add('occupied'); el.onclick = null; }
+    });
+    selectedSeats = [];
+    updateTotal();
+    renderHero(); // actualizeaza contorul de bilete
+  }
   closeModal();
 }
 
 function closeModal() {
   document.getElementById('modal').classList.remove('show');
+  consecutiveMode = false;
+  consecutiveN = 1;
 }
 
 // SPECTACOLE TAB - grupate pe zile
@@ -898,45 +1142,7 @@ function renderSpectacole() {
 }
 
 // INCASARI
-function renderIncasari() {
-  const online = D.rezervari.filter(r => r.online);
-  const offline = D.rezervari.filter(r => !r.online);
-  const sumOnline = online.reduce((s, r) => s + r.pret, 0);
-  const sumOffline = offline.reduce((s, r) => s + r.pret, 0);
-
-  document.getElementById('incasari-stats').innerHTML = `
-    <div class="stat-card online">
-      <div class="label">Online</div>
-      <div class="value">${sumOnline.toFixed(2)} RON</div>
-      <div class="sub">${online.length} bilete vandute online</div>
-    </div>
-    <div class="stat-card offline">
-      <div class="label">La casa</div>
-      <div class="value">${sumOffline.toFixed(2)} RON</div>
-      <div class="sub">${offline.length} bilete la casa</div>
-    </div>
-    <div class="stat-card total">
-      <div class="label">Total general</div>
-      <div class="value">${(sumOnline + sumOffline).toFixed(2)} RON</div>
-      <div class="sub">${D.rezervari.length} bilete total</div>
-    </div>
-  `;
-
-  document.getElementById('incasari-tabel').innerHTML = D.rezervari.length === 0
-    ? '<p style="color: var(--text-dim); text-align: center; padding: 2rem;">Nicio rezervare inca.</p>'
-    : `<div class="table-card">
-      ${D.rezervari.map(r => {
-        const f = D.filme.find(x => D.spectacole.find(s => s.id === r.spectacolId && s.filmId === x.id));
-        return `<div class="table-row">
-          <div style="color:var(--text-dim);">#${r.id}</div>
-          <div>${r.client} <span style="color:var(--text-dim); font-size:0.85rem;">(${r.tip})</span></div>
-          <div style="color:var(--text-dim); font-size:0.85rem;">${f ? (f.titlu.length > 18 ? f.titlu.substring(0,17) + '…' : f.titlu) : '?'}</div>
-          <div class="channel-badge ${r.online ? 'channel-online' : 'channel-offline'}">${r.online ? 'ONLINE' : 'CASA'}</div>
-          <div style="text-align:right; font-weight:700; font-family: 'Fredoka', sans-serif;">${r.pret.toFixed(2)}</div>
-        </div>`;
-      }).join('')}
-    </div>`;
-}
+// renderIncasari definita mai jos (versiunea cu admin + stergere)
 
 // TABS
 function showTab(name, ev) {
@@ -945,13 +1151,306 @@ function showTab(name, ev) {
   document.getElementById('tab-filme').classList.toggle('hidden', name !== 'filme');
   document.getElementById('tab-spectacole').classList.toggle('hidden', name !== 'spectacole');
   document.getElementById('tab-incasari').classList.toggle('hidden', name !== 'incasari');
+  if (name === 'incasari') renderIncasari();
 }
 
-// INIT
-renderHero();
-renderFilme();
-renderSpectacole();
-renderIncasari();
+// ============================================================
+// TOKEN IN MEMORIE (nu localStorage!)
+// ============================================================
+let AUTH = { token: null, rol: null, nume: null };
+
+function apiHeaders() {
+  const h = { 'Content-Type': 'application/json' };
+  if (AUTH.token) h['X-Token'] = AUTH.token;
+  return h;
+}
+
+// ============================================================
+// LOGIN
+// ============================================================
+async function doLogin() {
+  const username = document.getElementById('login-user').value.trim();
+  const password = document.getElementById('login-pass').value.trim();
+  const errEl = document.getElementById('login-err');
+  if (!username || !password) { errEl.textContent = 'Completeaza ambele campuri!'; return; }
+  errEl.textContent = '';
+  try {
+    const resp = await fetch('http://localhost:8080/api/login', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ username, password })
+    });
+    const data = await resp.json();
+    if (data.success) {
+      AUTH = { token: data.token, rol: data.rol, nume: data.nume };
+      document.getElementById('login-overlay').style.display = 'none';
+      document.getElementById('user-info').textContent = data.nume + ' (' + data.rol + ')';
+      document.getElementById('user-bar').style.display = 'flex';
+      if (AUTH.rol === 'Admin' || AUTH.rol === 'Manager') {
+        document.getElementById('btn-admin').style.display = 'inline-block';
+      }
+      renderHero(); renderFilme(); renderSpectacole();
+    } else {
+      errEl.textContent = data.error || 'Eroare login';
+    }
+  } catch(e) {
+    errEl.textContent = 'Server oprit! Porneste ./cinema_web';
+  }
+}
+
+function doLogout() {
+  if (AUTH.token) fetch('http://localhost:8080/api/logout?token=' + AUTH.token);
+  AUTH = { token: null, rol: null, nume: null };
+  document.getElementById('login-overlay').style.display = 'flex';
+  document.getElementById('user-bar').style.display = 'none';
+  document.getElementById('btn-admin').style.display = 'none';
+  document.getElementById('login-user').value = '';
+  document.getElementById('login-pass').value = '';
+}
+
+function loginAsGuest() {
+  AUTH = { token: null, rol: 'Vizitator', nume: 'Vizitator' };
+  document.getElementById('login-overlay').style.display = 'none';
+  document.getElementById('user-info').textContent = '👤 Vizitator';
+  document.getElementById('user-bar').style.display = 'flex';
+  document.getElementById('btn-admin').style.display = 'none';
+  renderHero(); renderFilme(); renderSpectacole();
+}
+
+// ============================================================
+// ADMIN PANEL
+// ============================================================
+function showAdmin() {
+  document.getElementById('admin-overlay').style.display = 'flex';
+  loadAdminData();
+}
+function hideAdmin() {
+  document.getElementById('admin-overlay').style.display = 'none';
+}
+
+async function loadAdminData() {
+  try {
+    const [fr, sr] = await Promise.all([
+      fetch('http://localhost:8080/api/filme-toate', { headers: apiHeaders() }),
+      fetch('http://localhost:8080/api/sali-toate',  { headers: apiHeaders() })
+    ]);
+    const filme = await fr.json();
+    const sali  = await sr.json();
+    // Populeaza select-uri in formul spectacol
+    const selFilm = document.getElementById('adm-film-sel');
+    const selSala = document.getElementById('adm-sala-sel');
+    selFilm.innerHTML = filme.map(f => `<option value="${f.id}">${f.titlu}</option>`).join('');
+    selSala.innerHTML = sali.map(s => `<option value="${s.id}">Sala ${s.numar} (${s.randuri}x${s.coloane})</option>`).join('');
+  } catch(e) {}
+}
+
+async function addFilm() {
+  const titlu    = document.getElementById('adm-titlu').value.trim();
+  const categorie= document.getElementById('adm-cat').value.trim() || 'Drama';
+  const durata   = document.getElementById('adm-durata').value || '90';
+  const varsta   = document.getElementById('adm-varsta').value || '0';
+  const regizor  = document.getElementById('adm-regizor').value.trim();
+  const an       = document.getElementById('adm-an').value || '2024';
+  const rating   = document.getElementById('adm-rating').value || '7.0';
+  const tip      = document.getElementById('adm-tip').value;
+  if (!titlu) { alert('Titlul e obligatoriu!'); return; }
+  try {
+    const resp = await fetch('http://localhost:8080/api/film', {
+      method: 'POST', headers: apiHeaders(),
+      body: JSON.stringify({ titlu, categorie, durata, varsta, regizor, an, rating, tip })
+    });
+    const data = await resp.json();
+    if (data.success) { alert('✅ ' + data.mesaj); loadAdminData(); }
+    else alert('❌ ' + data.error);
+  } catch(e) { alert('Eroare server'); }
+}
+
+async function addSpectacol() {
+  const filmID = document.getElementById('adm-film-sel').value;
+  const salaID = document.getElementById('adm-sala-sel').value;
+  const data   = document.getElementById('adm-data').value;
+  const ora    = document.getElementById('adm-ora').value;
+  const pret   = document.getElementById('adm-pret').value || '35';
+  if (!data || !ora) { alert('Data si ora sunt obligatorii!'); return; }
+  try {
+    const resp = await fetch('http://localhost:8080/api/spectacol', {
+      method: 'POST', headers: apiHeaders(),
+      body: JSON.stringify({ filmID, salaID, data, ora, pret })
+    });
+    const d = await resp.json();
+    if (d.success) { alert('✅ ' + d.mesaj); }
+    else alert('❌ ' + d.error);
+  } catch(e) { alert('Eroare server'); }
+}
+
+async function deleteRezervare(id) {
+  if (!confirm('Stergi rezervarea #' + id + '?')) return;
+  try {
+    const resp = await fetch('http://localhost:8080/api/rezervare?id=' + id, {
+      method: 'DELETE', headers: apiHeaders()
+    });
+    const data = await resp.json();
+    if (data.success) { alert('✅ Rezervare stearsa!'); renderIncasari(); }
+    else alert('❌ ' + data.error);
+  } catch(e) { alert('Eroare server'); }
+}
+
+// ============================================================
+// Suprascriem renderIncasari sa aiba buton de stergere
+// ============================================================
+async function renderIncasari() {
+  const statsEl = document.getElementById('incasari-stats');
+  const tabelEl = document.getElementById('incasari-tabel');
+  if (!statsEl) return;
+  statsEl.innerHTML = '<p style="color:var(--text-dim);text-align:center;padding:1rem">Se incarca...</p>';
+  let rezervari = [];
+  try {
+    const resp = await fetch('http://localhost:8080/api/rezervari', { headers: apiHeaders() });
+    rezervari = await resp.json();
+  } catch(e) { rezervari = D.rezervari || []; }
+
+  function pret(r) {
+    const sp = D.spectacole.find(s => s.id === parseInt(r.spectacolID));
+    if (!sp) return 0;
+    const d = r.tip==='Student'?0.8:r.tip==='Elev'?0.7:r.tip==='Pensionar'?0.75:r.tip==='Copil'?0.5:1.0;
+    return sp.pret * d;
+  }
+  const online  = rezervari.filter(r => r.online);
+  const offline = rezervari.filter(r => !r.online);
+  statsEl.innerHTML = `
+    <div class="stat-card online"><div class="label">Online</div><div class="value">${online.reduce((s,r)=>s+pret(r),0).toFixed(2)} RON</div><div class="sub">${online.length} bilete</div></div>
+    <div class="stat-card offline"><div class="label">Casa</div><div class="value">${offline.reduce((s,r)=>s+pret(r),0).toFixed(2)} RON</div><div class="sub">${offline.length} bilete</div></div>
+    <div class="stat-card total"><div class="label">Total</div><div class="value">${rezervari.reduce((s,r)=>s+pret(r),0).toFixed(2)} RON</div><div class="sub">${rezervari.length} bilete</div></div>`;
+  const canDelete = AUTH.rol === 'Admin' || AUTH.rol === 'Manager' || AUTH.rol === 'Casier';
+  tabelEl.innerHTML = rezervari.length === 0
+    ? '<p style="color:var(--text-dim);text-align:center;padding:2rem">Nicio rezervare inca.</p>'
+    : `<div class="table-card">${rezervari.map(r => {
+        const sp = D.spectacole.find(s => s.id === parseInt(r.spectacolID));
+        const f  = sp ? D.filme.find(x => x.id === sp.filmId) : null;
+        const titlu = f ? (f.titlu.length>18?f.titlu.substring(0,17)+'…':f.titlu) : '?';
+        const badge = r.online
+          ? '<span class="channel-badge channel-online">ONLINE</span>'
+          : '<span class="channel-badge channel-offline">CASA</span>';
+        const delBtn = canDelete
+          ? `<button onclick="deleteRezervare(${r.id})" style="background:rgba(255,94,156,0.2);border:1px solid rgba(255,94,156,0.5);color:#ff5e9c;border-radius:8px;padding:2px 8px;cursor:pointer;font-size:0.8rem">✕</button>` : '';
+        return `<div class="table-row">
+          <div style="color:var(--text-dim)">#${r.id}</div>
+          <div>${r.nume} <span style="color:var(--text-dim);font-size:0.8rem">(${r.tip})</span></div>
+          <div style="color:var(--text-dim);font-size:0.85rem">${titlu}</div>
+          <div>${badge}</div>
+          <div style="text-align:right;font-weight:700">${pret(r).toFixed(2)}</div>
+          <div>${delBtn}</div>
+        </div>`;
+      }).join('')}</div>`;
+}
+
+
+
+// ============================================================
+// INIT - dupa ce tot DOM-ul e incarcat
+// ============================================================
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('login-overlay').style.display = 'flex';
+  document.getElementById('user-bar').style.display = 'none';
+  renderFilme();
+  renderSpectacole();
+  // Actualizeaza contorul de bilete la fiecare 30 secunde
+  setInterval(function() {
+    if (AUTH.token || AUTH.rol === 'Vizitator') renderHero();
+  }, 30000);
+});
 </script>
+
+<!-- LOGIN OVERLAY -->
+<div id="login-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(10,5,25,0.95);z-index:10000;align-items:center;justify-content:center;">
+  <div style="background:#2a1854;border-radius:24px;padding:2.5rem;width:90%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,0.7);">
+    <div style="text-align:center;margin-bottom:1.5rem">
+      <div style="font-size:2.5rem;margin-bottom:0.5rem">🎬</div>
+      <h2 style="font-family:Fredoka,sans-serif;font-size:1.8rem;background:linear-gradient(135deg,#ff5e9c,#ffd93d);-webkit-background-clip:text;-webkit-text-fill-color:transparent">CinePlex</h2>
+      <p style="color:#9b8eb8;font-size:0.9rem;margin-top:0.3rem">Autentificare staff</p>
+    </div>
+    <div style="margin-bottom:1rem">
+      <label style="color:#9b8eb8;font-size:0.85rem;display:block;margin-bottom:4px">Username</label>
+      <input id="login-user" type="text" placeholder="ex: admin" onkeydown="if(event.key==='Enter')doLogin()"
+        style="width:100%;padding:0.75rem;border-radius:12px;border:1px solid #4a3580;background:#1a0d2e;color:#fff;font-size:1rem">
+    </div>
+    <div style="margin-bottom:1rem">
+      <label style="color:#9b8eb8;font-size:0.85rem;display:block;margin-bottom:4px">Parolă</label>
+      <input id="login-pass" type="password" placeholder="••••••" onkeydown="if(event.key==='Enter')doLogin()"
+        style="width:100%;padding:0.75rem;border-radius:12px;border:1px solid #4a3580;background:#1a0d2e;color:#fff;font-size:1rem">
+    </div>
+    <div id="login-err" style="color:#ff5e9c;font-size:0.85rem;min-height:1.2rem;margin-bottom:0.5rem"></div>
+    <button onclick="doLogin()" style="width:100%;padding:0.9rem;border-radius:14px;border:none;background:linear-gradient(135deg,#ff5e9c,#ff9a3c);color:#fff;font-size:1rem;font-weight:700;cursor:pointer;font-family:Fredoka,sans-serif;font-size:1.1rem">
+      Intră în sistem
+    </button>
+    <p style="color:#9b8eb8;font-size:0.8rem;text-align:center;margin-top:1rem">staff: admin/admin · manager/manager · casier/casier</p>
+    <div style="margin-top:0.75rem;text-align:center">
+      <button onclick="loginAsGuest()" style="background:transparent;border:1.5px solid rgba(155,142,184,0.4);color:#9b8eb8;border-radius:10px;padding:0.55rem 1.2rem;cursor:pointer;font-size:0.9rem;transition:all 0.2s"
+        onmouseover="this.style.borderColor='#9b8eb8';this.style.color='#fff'" onmouseout="this.style.borderColor='rgba(155,142,184,0.4)';this.style.color='#9b8eb8'">
+        👤 Continuă ca vizitator
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- USER BAR -->
+<div id="user-bar" style="position:fixed;bottom:1rem;right:1rem;background:#2a1854;border:1px solid rgba(255,94,156,0.3);border-radius:14px;padding:0.6rem 1rem;display:flex;align-items:center;gap:0.75rem;z-index:9000">
+  <span id="user-info" style="color:#fff;font-size:0.9rem"></span>
+  <button id="btn-admin" onclick="showAdmin()" style="display:none;background:rgba(255,217,61,0.2);border:1px solid rgba(255,217,61,0.5);color:#ffd93d;border-radius:8px;padding:4px 10px;cursor:pointer;font-size:0.85rem">⚙ Admin</button>
+  <button onclick="doLogout()" style="background:rgba(255,94,156,0.2);border:1px solid rgba(255,94,156,0.4);color:#ff5e9c;border-radius:8px;padding:4px 10px;cursor:pointer;font-size:0.85rem">Ieșire</button>
+</div>
+
+<!-- ADMIN PANEL -->
+<div id="admin-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:9500;align-items:flex-start;justify-content:center;overflow-y:auto;padding:2rem 1rem">
+  <div style="background:#2a1854;border-radius:24px;padding:2rem;width:100%;max-width:700px;margin:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+      <h2 style="font-family:Fredoka,sans-serif;color:#ffd93d">⚙ Panou Admin</h2>
+      <button onclick="hideAdmin()" style="background:rgba(255,94,156,0.2);border:1px solid rgba(255,94,156,0.4);color:#ff5e9c;border-radius:8px;padding:6px 14px;cursor:pointer">✕ Închide</button>
+    </div>
+
+    <!-- Adauga film -->
+    <div style="background:#1a0d2e;border-radius:16px;padding:1.5rem;margin-bottom:1.5rem">
+      <h3 style="color:#4ecdc4;margin-bottom:1rem;font-family:Fredoka,sans-serif">🎬 Adaugă Film</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem">
+        <div><label style="color:#9b8eb8;font-size:0.8rem">Titlu *</label><br>
+          <input id="adm-titlu" type="text" placeholder="Titlu film" style="width:100%;padding:0.6rem;border-radius:8px;border:1px solid #4a3580;background:#2a1854;color:#fff;margin-top:2px"></div>
+        <div><label style="color:#9b8eb8;font-size:0.8rem">Categorie</label><br>
+          <input id="adm-cat" type="text" placeholder="Sci-Fi, Drama..." style="width:100%;padding:0.6rem;border-radius:8px;border:1px solid #4a3580;background:#2a1854;color:#fff;margin-top:2px"></div>
+        <div><label style="color:#9b8eb8;font-size:0.8rem">Durata (min)</label><br>
+          <input id="adm-durata" type="number" value="100" style="width:100%;padding:0.6rem;border-radius:8px;border:1px solid #4a3580;background:#2a1854;color:#fff;margin-top:2px"></div>
+        <div><label style="color:#9b8eb8;font-size:0.8rem">Vârsta min</label><br>
+          <input id="adm-varsta" type="number" value="0" style="width:100%;padding:0.6rem;border-radius:8px;border:1px solid #4a3580;background:#2a1854;color:#fff;margin-top:2px"></div>
+        <div><label style="color:#9b8eb8;font-size:0.8rem">Regizor</label><br>
+          <input id="adm-regizor" type="text" placeholder="Nume regizor" style="width:100%;padding:0.6rem;border-radius:8px;border:1px solid #4a3580;background:#2a1854;color:#fff;margin-top:2px"></div>
+        <div><label style="color:#9b8eb8;font-size:0.8rem">An</label><br>
+          <input id="adm-an" type="number" value="2024" style="width:100%;padding:0.6rem;border-radius:8px;border:1px solid #4a3580;background:#2a1854;color:#fff;margin-top:2px"></div>
+        <div><label style="color:#9b8eb8;font-size:0.8rem">Rating (1-10)</label><br>
+          <input id="adm-rating" type="number" step="0.1" value="7.0" style="width:100%;padding:0.6rem;border-radius:8px;border:1px solid #4a3580;background:#2a1854;color:#fff;margin-top:2px"></div>
+        <div><label style="color:#9b8eb8;font-size:0.8rem">Tip proiecție</label><br>
+          <select id="adm-tip" style="width:100%;padding:0.6rem;border-radius:8px;border:1px solid #4a3580;background:#2a1854;color:#fff;margin-top:2px">
+            <option value="2D">2D</option><option value="3D">3D</option></select></div>
+      </div>
+      <button onclick="addFilm()" style="margin-top:1rem;width:100%;padding:0.75rem;border-radius:12px;border:none;background:linear-gradient(135deg,#4ecdc4,#2bb5ac);color:#1a0d2e;font-weight:700;cursor:pointer;font-size:1rem">+ Adaugă Film</button>
+    </div>
+
+    <!-- Adauga spectacol -->
+    <div style="background:#1a0d2e;border-radius:16px;padding:1.5rem">
+      <h3 style="color:#ff9a3c;margin-bottom:1rem;font-family:Fredoka,sans-serif">🎭 Adaugă Spectacol</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem">
+        <div><label style="color:#9b8eb8;font-size:0.8rem">Film</label><br>
+          <select id="adm-film-sel" style="width:100%;padding:0.6rem;border-radius:8px;border:1px solid #4a3580;background:#2a1854;color:#fff;margin-top:2px"></select></div>
+        <div><label style="color:#9b8eb8;font-size:0.8rem">Sală</label><br>
+          <select id="adm-sala-sel" style="width:100%;padding:0.6rem;border-radius:8px;border:1px solid #4a3580;background:#2a1854;color:#fff;margin-top:2px"></select></div>
+        <div><label style="color:#9b8eb8;font-size:0.8rem">Data</label><br>
+          <input id="adm-data" type="date" style="width:100%;padding:0.6rem;border-radius:8px;border:1px solid #4a3580;background:#2a1854;color:#fff;margin-top:2px"></div>
+        <div><label style="color:#9b8eb8;font-size:0.8rem">Ora</label><br>
+          <input id="adm-ora" type="time" style="width:100%;padding:0.6rem;border-radius:8px;border:1px solid #4a3580;background:#2a1854;color:#fff;margin-top:2px"></div>
+        <div><label style="color:#9b8eb8;font-size:0.8rem">Preț (RON)</label><br>
+          <input id="adm-pret" type="number" value="35" style="width:100%;padding:0.6rem;border-radius:8px;border:1px solid #4a3580;background:#2a1854;color:#fff;margin-top:2px"></div>
+      </div>
+      <button onclick="addSpectacol()" style="margin-top:1rem;width:100%;padding:0.75rem;border-radius:12px;border:none;background:linear-gradient(135deg,#ff9a3c,#ff5e9c);color:#fff;font-weight:700;cursor:pointer;font-size:1rem">+ Adaugă Spectacol</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>

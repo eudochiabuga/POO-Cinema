@@ -7,19 +7,19 @@
 //  Compilare (dintr-un parinte care contine tests/ si fisierele .cpp):
 //      make test
 //  sau direct:
-//      g++ -std=c++17 -I.. tests/test_cinema.cpp Film.cpp Sala.cpp \
+//      g++ -std=c++17 -Isrc tests/test_cinema.cpp src/Film.cpp src/Sala.cpp \
 //          SalaVIP.cpp Spectacol.cpp Rezervare.cpp RezervareOnline.cpp \
 //          Persoana.cpp TipPersoana.cpp Angajat.cpp TipAngajat.cpp \
 //          SistemAutentificare.cpp Cinematograf.cpp Persistenta.cpp \
 //          Raport.cpp AppContext.cpp -o test_cinema && ./test_cinema
 // ============================================================
 
-#include "../Cinematograf.h"
-#include "../RezervareOnline.h"
-#include "../SalaVIP.h"
-#include "../TipPersoana.h"
-#include "../Exceptii.h"
-#include "../Repository.h"
+#include "Cinematograf.h"
+#include "RezervareOnline.h"
+#include "SalaVIP.h"
+#include "TipPersoana.h"
+#include "Exceptii.h"
+#include "Repository.h"
 
 #include <iostream>
 #include <string>

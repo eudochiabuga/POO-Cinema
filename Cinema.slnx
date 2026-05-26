@@ -1,7 +1,0 @@
-<Solution>
-  <Configurations>
-    <Platform Name="x64" />
-    <Platform Name="x86" />
-  </Configurations>
-  <Project Path="Cinema/Cinema.vcxproj" Id="1dc53294-d6c2-44fd-b5b8-b06466db3e9d" />
-</Solution>

@@ -398,7 +398,7 @@ void OptRezervare(Cinematograf& c, bool online) {
     } catch (CinemaException& e) { Eroare(e.what()); }
 }
 
-// REZERVARE MULTIPLA - cauta N locuri consecutive
+// REZERVARE MULTIPLA - cauta N locuri consecutive pe randul ales de utilizator
 void OptRezervareMultipla(Cinematograf& c) {
     Titlu("REZERVARE MULTIPLA (BILETE CONSECUTIVE)", MAGENTA);
     AfisareSpectacoleColorat(c);
@@ -407,36 +407,50 @@ void OptRezervareMultipla(Cinematograf& c) {
     if (!sp) { Eroare("Spectacol negasit."); return; }
     AfisareHartaColorat(sp);
     int N = CitesteInt("Cate bilete consecutive (1-10)", 1, 10);
-    Persoana* client = CitesteClient();
-    string email = CitesteString("Email (opt) ");
-    if (!email.empty()) client->SetEmail(email);
-    c.AdaugaClient(client);
 
-    int randGasit = -1, colStart = -1;
-    for (int r = 0; r < sp->GetRanduri() && randGasit < 0; r++) {
-        int consec = 0;
+    // Arata randurile disponibile cu N locuri consecutive
+    cout << "\n  " << CYAN << BOLD << "Randuri cu " << N << " locuri consecutive disponibile:" << RESET << "\n";
+    vector<pair<int,int>> optiuni; // (rand, colStart)
+    for (int r = 0; r < sp->GetRanduri(); r++) {
+        int consec = 0, colStart = -1;
         for (int col = 0; col < sp->GetColoane(); col++) {
             if (sp->LocLiber(r, col)) {
+                if (consec == 0) colStart = col;
                 consec++;
-                if (consec == N) {
-                    randGasit = r;
-                    colStart = col - N + 1;
+                if (consec >= N) {
+                    optiuni.push_back({r, colStart});
+                    cout << "  " << GREEN << optiuni.size() << "." << RESET
+                         << " Randul " << BOLD << (r + 1) << RESET
+                         << ", locurile " << (colStart + 1) << "-" << (colStart + N) << "\n";
                     break;
                 }
-            } else consec = 0;
+            } else { consec = 0; colStart = -1; }
         }
     }
-    if (randGasit < 0) {
+    if (optiuni.empty()) {
         Eroare("Nu am gasit " + to_string(N) + " locuri consecutive pe niciun rand.");
         return;
     }
-    Info("Locuri gasite: randul " + to_string(randGasit + 1) +
+    int ales = CitesteInt("Alege optiunea dorita", 1, (int)optiuni.size()) - 1;
+    int randGasit = optiuni[ales].first;
+    int colStart  = optiuni[ales].second;
+    Info("Ai ales: randul " + to_string(randGasit + 1) +
          ", coloanele " + to_string(colStart + 1) + " - " + to_string(colStart + N));
 
+    // Citeste email comun (optional)
+    string email = CitesteString("Email comun (optional, apasa Enter pentru a sari)");
+
+    // Citeste cate o persoana pentru fiecare bilet
     vector<Rezervare*> rezervari;
     double total = 0;
     try {
         for (int i = 0; i < N; i++) {
+            cout << "\n  " << MAGENTA << BOLD << "--- Bilet #" << (i + 1)
+                 << " (Rand " << (randGasit + 1) << ", Col " << (colStart + i + 1) << ") ---" << RESET << "\n";
+            Persoana* client = CitesteClient();
+            if (!email.empty()) client->SetEmail(email);
+            c.AdaugaClient(client);
+
             sp->RezervaLoc(randGasit, colStart + i);
             Rezervare* r;
             if (!email.empty())
@@ -447,11 +461,11 @@ void OptRezervareMultipla(Cinematograf& c) {
             rezervari.push_back(r);
             total += r->GetPretFinal();
         }
-        cout << "\n"; Succes("S-au rezervat " + to_string(N) + " bilete pe acelasi rand!");
+        cout << "\n"; Succes("S-au rezervat " + to_string(N) + " bilete pe randul " + to_string(randGasit + 1) + "!");
         cout << "\n";
         for (auto r : rezervari)
-            cout << "  Bilet #" << r->GetID() << " - Rand " << r->GetRand() + 1
-                 << ", Col " << r->GetColoana() + 1
+            cout << "  Bilet #" << r->GetID() << " - " << r->GetClient()->GetNume()
+                 << " | Rand " << r->GetRand() + 1 << ", Col " << r->GetColoana() + 1
                  << " - " << GREEN << fixed << setprecision(2) << r->GetPretFinal() << " RON" << RESET << "\n";
         cout << "  " << BOLD << "TOTAL: " << GREEN << fixed << setprecision(2)
              << total << " RON" << RESET << "\n";
@@ -711,19 +725,12 @@ int main() {
                 case 9:  OptIncasari(cinema); break;
                 case 10: OptDemoExceptii(cinema); break;
                 case 11: OptExportWeb(cinema); break;
-                case 0:
-                    cout << "\n  " << GRAY << "Salvare date..." << RESET << "\n";
-                    try {
-                        Persistenta::SalveazaTot(cinema, auth, DATA_FOLDER);
-                        ExportWebData(cinema);
-                        Succes("Date salvate in " + DATA_FOLDER + "/ si web/data.js");
-                    } catch (CinemaException& e) { Eroare(e.what()); }
-                    cout << "\n  " << CYAN << BOLD
-                        << "Va multumim ca ati ales " << cinema.GetNume() << "!" << RESET << "\n\n";
-                    break;
-                default: Eroare("Optiune invalida.");
+                case 0:  Persistenta::SalveazaTot(cinema, auth, DATA_FOLDER); Succes("Date salvate. La revedere!"); break;
+                default: Avertizare("Optiune invalida."); break;
             }
         } catch (CinemaException& e) { Eroare(e.what()); }
+          catch (exception& e)       { Eroare(e.what()); }
+          catch (...)                { Eroare("Eroare necunoscuta."); }
     }
     return 0;
 }
