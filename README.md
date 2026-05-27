@@ -147,7 +147,7 @@ Recomandat Windows Terminal sau un terminal modern.
 | **STL** | `vector`, `map`, `string`, `function`, `algorithm` | folosit pe larg in `Repository`, `Raport`, `Persistenta` |
 | **Operator overloading** | `operator==`, `operator<`, `operator<<` | `Film`, `Sala`, `Rezervare`, `Spectacol` |
 | **Constructor de copiere + operator=** | `Sala`, `Spectacol`, `Film`, `Rezervare` | Rule of Three pentru clase cu memorie dinamica |
-| **RAII** | matrice de locuri `int**` din `Sala`, `bool**` din `Spectacol` | alocare in constructor, eliberare in destructor |
+| **RAND** | matrice de locuri `int**` din `Sala`, `bool**` din `Spectacol` | alocare in constructor, eliberare in destructor |
 | **Lambda / functori** | `Repository::Filtreaza`, `Sorteaza` | `[](const Film* f) { return f->GetCategorie() == "Drama"; }` |
 
 ## Capturi din aplicatie
