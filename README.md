@@ -224,5 +224,5 @@ conceptelor POO, posibile imbunatatiri), vezi
 
 ## Autor
 
-Proiect realizat pentru cursul de Programare Orientata pe Obiecte.
+Buga Eudochia
 Tema 3121B - Sistem de Rezervari pentru un Cinema.
