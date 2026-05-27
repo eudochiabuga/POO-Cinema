@@ -216,11 +216,6 @@ Harta interactiva a salii (legenda colorata):
 ═══════════════════════════════════════════════════════════
 ```
 
-## Documentatie tehnica
-
-Pentru detalii (diagrama UML, descrierea fiecarei clase, explicatii ale
-conceptelor POO, posibile imbunatatiri), vezi
-[`docs/documentatie.md`](docs/documentatie.md).
 
 ## Autor
 
